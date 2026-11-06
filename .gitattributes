@@ -1,0 +1,10 @@
+# LF en el repositorio y en el árbol de trabajo (los builds corren en contenedores Linux).
+* text=auto eol=lf
+
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary

@@ -1,0 +1,40 @@
+# Plantilla procesada por la imagen de nginx al arrancar: ${BACKEND_URL} se reemplaza con la
+# variable de entorno. Las variables propias de nginx ($host, $uri...) no se tocan.
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    server_tokens off;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    # API y health check del backend, servidos desde el mismo origen (ADR-0007).
+    # Las cabeceras de seguridad de estas respuestas las pone Spring Security.
+    location /api/ {
+        include /etc/nginx/snippets/proxy-headers.conf;
+        proxy_pass ${BACKEND_URL};
+    }
+
+    location = /actuator/health {
+        include /etc/nginx/snippets/proxy-headers.conf;
+        proxy_pass ${BACKEND_URL};
+    }
+
+    # Archivos con hash en el nombre: se pueden cachear para siempre.
+    location /assets/ {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # SPA: cualquier otra ruta devuelve index.html, que nunca se cachea.
+    location / {
+        include /etc/nginx/snippets/security-headers.conf;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri $uri/ /index.html;
+    }
+}
