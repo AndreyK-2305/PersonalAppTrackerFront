@@ -8,9 +8,9 @@ Complementan las decisiones del sistema, documentadas en el repositorio del back
   - `api/`: funciones de acceso a la API y `queryOptions`;
   - `components/`;
   - `hooks/`;
-  - `schemas/`: esquemas Zod de formularios;
+  - `schemas.ts`: esquemas Zod de los formularios;
   - `pages/`.
-    Solo se crean las subcarpetas que se usan.
+- Solo se crean las subcarpetas que se usan.
 - Lo que comparten varias funcionalidades sube a `components/common`, `hooks` o `lib`. Una funcionalidad no importa componentes internos de otra.
 - No hay carpetas `services/` ni `stores/`: las llamadas a la API viven en su funcionalidad y el estado del servidor lo maneja TanStack Query.
 
@@ -31,7 +31,28 @@ Complementan las decisiones del sistema, documentadas en el repositorio del back
   - `status = 0` y `code = "network_error"`: no hubo respuesta.
   - `code = "unexpected_response"`: la respuesta no tenía formato ProblemDetail (por ejemplo, un 502 del proxy).
 - **Validación:** `error.fieldErrors` trae los errores de validación por campo, para mostrarlos en los formularios.
-- **Etapa 2:** se agregan el token CSRF en las operaciones que modifican datos y el manejo global del 401.
+- **CSRF:** `apiFetch` envía el token de la cookie `XSRF-TOKEN` en la cabecera `X-XSRF-TOKEN` en `POST`, `PUT`, `PATCH` y `DELETE`. Si el backend responde `csrf_invalid`, reintenta una vez con el token de esa respuesta.
+- **JSON:** el cuerpo se envía con la opción `json`, por ejemplo `apiFetch(url, { method: "POST", json: datos })`.
+- **Sesión expirada:** un 401 con `code = "unauthorized"` en cualquier consulta o mutación marca la sesión como cerrada (`src/app/query-client.ts`), y `RequireSession` lleva al inicio de sesión.
+- **Tipos de la API:** los tipos de peticiones y respuestas salen de `src/types/api.d.ts`, generado con `npm run api:types`. No se escriben a mano.
+
+## Sesión
+
+- **Fuente de verdad:** la consulta `sessionQueryOptions` (`GET /api/v1/me`) devuelve el perfil, o `null` si no hay sesión.
+- **Guards:** `RequireSession` protege las rutas y `PublicOnlyRoute` evita mostrar el login con una sesión activa.
+- **Perfil actual:** dentro de las rutas protegidas se obtiene con `useCurrentProfile()`.
+- **Al cerrar sesión** se vacía toda la caché de TanStack Query, para que no queden datos del usuario anterior.
+- **Redirecciones:** el parámetro `redirect` del login solo acepta rutas internas (`safeRedirect`).
+
+## Formularios
+
+- React Hook Form con `zodResolver`; los esquemas Zod viven en la funcionalidad.
+- **Validaciones del cliente:** solo adelantan respuesta inmediata. Las reglas definitivas las aplica el backend, sin duplicar lógica de dominio.
+- **Campos de texto:** `FormTextField` (`components/common`) une etiqueta, ayuda y error accesibles con `aria-invalid`.
+- **Errores del backend:**
+  - los que corresponden a un campo se asignan con `form.setError` según `error.code`;
+  - el resto se muestra con `FormError`.
+- **Avisos de éxito:** `toast.success(...)` de `sonner`.
 
 ## Montos y fechas (ADR-0006)
 
@@ -59,6 +80,8 @@ Complementan las decisiones del sistema, documentadas en el repositorio del back
 ## Pruebas
 
 - Vitest y Testing Library, con los archivos `*.test.ts(x)` junto al código que prueban.
+- **Pantallas completas:** se prueban con `renderAt(ruta)` (`src/test/render.tsx`), que usa las rutas y los providers reales.
+- **Respuestas de la API:** se simulan con `stubApi({ "GET /api/v1/me": { body } })`; una ruta no definida responde 404.
 - Se prueba el comportamiento visible: se buscan elementos por rol y texto, como lo haría el usuario, y no detalles de implementación.
 - `fetch` se sustituye con las utilidades de `src/test/http-stubs.ts`.
 - Cada pantalla nueva prueba sus estados de carga, error y éxito.

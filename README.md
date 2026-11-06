@@ -7,9 +7,9 @@ La API vive en otro repositorio: [PersonalAppTrackerBackend](https://github.com/
 
 ## Tecnologías
 
-React 19, TypeScript, Vite 8, Tailwind CSS 4, shadcn/ui (Radix, preset Nova), React Router 8 y TanStack Query 5. Las pruebas usan Vitest y Testing Library.
+React 19, TypeScript, Vite 8, Tailwind CSS 4, shadcn/ui (Radix, preset Nova), React Router 8, TanStack Query 5, React Hook Form y Zod. Los avisos usan `sonner`. Las pruebas usan Vitest y Testing Library.
 
-Se agregarán en su etapa: React Hook Form, Zod y `@hookform/resolvers` (Etapa 2, formularios), y Recharts y TanStack Table (Etapa 3, dashboard y tablas).
+Se agregarán en la Etapa 3: Recharts y TanStack Table, para el dashboard y las tablas.
 
 ## Requisitos
 
@@ -27,34 +27,52 @@ El servidor de desarrollo reenvía `/api` y `/actuator/health` al backend, así 
 
 ## Comandos
 
-| Comando                                   | Qué hace                                                        |
-| ----------------------------------------- | --------------------------------------------------------------- |
-| `npm run dev`                             | Servidor de desarrollo en el puerto 5174, con proxy al backend. |
-| `npm run build`                           | Verifica tipos y genera `dist/`.                                |
-| `npm run preview`                         | Sirve `dist/` localmente.                                       |
-| `npm run lint`                            | ESLint.                                                         |
-| `npm run format` / `npm run format:check` | Aplica o verifica Prettier.                                     |
-| `npm test` / `npm run test:watch`         | Vitest en una pasada o en modo observación.                     |
+| Comando                                   | Qué hace                                                          |
+| ----------------------------------------- | ----------------------------------------------------------------- |
+| `npm run dev`                             | Servidor de desarrollo en el puerto 5174, con proxy al backend.   |
+| `npm run build`                           | Verifica tipos y genera `dist/`.                                  |
+| `npm run preview`                         | Sirve `dist/` localmente.                                         |
+| `npm run lint`                            | ESLint.                                                           |
+| `npm run format` / `npm run format:check` | Aplica o verifica Prettier.                                       |
+| `npm test` / `npm run test:watch`         | Vitest en una pasada o en modo observación.                       |
+| `npm run api:types`                       | Regenera `src/types/api.d.ts` desde el OpenAPI del backend local. |
 
 ## Estructura
 
 ```text
 src/
-├── app/            punto de entrada, providers (TanStack Query, tooltips) y QueryClient
+├── app/            punto de entrada, providers (TanStack Query, tooltips, avisos) y QueryClient
 ├── components/
 │   ├── ui/         componentes de shadcn/ui (generados con su CLI)
-│   └── common/     componentes propios reutilizables (PageHeader, ErrorState)
+│   └── common/     componentes propios reutilizables (PageHeader, ErrorState, FormTextField…)
 ├── features/       una carpeta por funcionalidad: api/, components/, hooks/, schemas/, pages/
 ├── hooks/          hooks genéricos
-├── layouts/        AppLayout y navegación lateral
+├── layouts/        AppLayout (navegación lateral y menú de usuario) y AuthLayout
 ├── lib/            cliente HTTP, formato de montos y fechas, utilidades
-├── routes/         definición de rutas y páginas de error y 404
+├── routes/         definición de rutas, guards de sesión y páginas de error y 404
 ├── test/           configuración y utilidades de pruebas
-└── types/          tipos transversales (ProblemDetail)
+└── types/          tipos transversales: ProblemDetail y api.d.ts (generado del OpenAPI)
 nginx/              configuración de nginx para la imagen Docker
 ```
 
 Las convenciones de código están en [docs/conventions.md](docs/conventions.md).
+
+## Sesión y rutas
+
+- **Rutas públicas:** `/iniciar-sesion` y `/registro`. Esta última solo permite registrarse si el backend tiene `REGISTRATION_ENABLED=true`.
+- **Rutas protegidas:** todas las demás. Sin sesión llevan al inicio de sesión y recuerdan la página pedida.
+- **Sesión expirada:** si expira mientras se usa la aplicación, cualquier respuesta 401 cierra la sesión en el cliente y lleva de nuevo al inicio de sesión.
+- **Primera cuenta:** el procedimiento para crearla está en el README del backend (ADR-0012).
+
+## Tipos de la API
+
+`src/types/api.d.ts` se genera desde el OpenAPI del backend y se versiona. Para regenerarlo, con el backend en el perfil `local`:
+
+```bash
+npm run api:types
+```
+
+El script usa `npx openapi-typescript@7.13.0`, con la versión fijada y fuera de las dependencias del proyecto, porque esa herramienta aún exige TypeScript 5 y el proyecto usa TypeScript 6.
 
 ## Docker
 

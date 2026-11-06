@@ -1,5 +1,10 @@
 # Plantilla procesada por la imagen de nginx al arrancar: ${BACKEND_URL} se reemplaza con la
 # variable de entorno. Las variables propias de nginx ($host, $uri...) no se tocan.
+
+# Límite por IP para inicio de sesión y registro (D16). Complementa el bloqueo por cuenta del
+# backend: frena los intentos repartidos entre muchas cuentas desde una misma dirección.
+limit_req_zone $binary_remote_addr zone=auth:10m rate=10r/m;
+
 server {
     listen 8080;
     server_name _;
@@ -12,11 +17,26 @@ server {
     gzip_types text/css application/javascript application/json image/svg+xml;
     gzip_min_length 1024;
 
+    limit_req_status 429;
+
     # API y health check del backend, servidos desde el mismo origen (ADR-0007).
     # Las cabeceras de seguridad de estas respuestas las pone Spring Security.
     location /api/ {
         include /etc/nginx/snippets/proxy-headers.conf;
         proxy_pass ${BACKEND_URL};
+    }
+
+    location ~ ^/api/v1/auth/(login|register)$ {
+        limit_req zone=auth burst=5 nodelay;
+        error_page 429 = @too_many_requests;
+        include /etc/nginx/snippets/proxy-headers.conf;
+        proxy_pass ${BACKEND_URL};
+    }
+
+    # Misma forma que los errores de la API (RFC 9457) para que el frontend muestre el mensaje.
+    location @too_many_requests {
+        default_type application/problem+json;
+        return 429 '{"status":429,"code":"too_many_requests","title":"Demasiadas solicitudes","detail":"Hiciste demasiados intentos seguidos. Espera un minuto e intenta de nuevo."}';
     }
 
     location = /actuator/health {

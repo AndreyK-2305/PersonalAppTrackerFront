@@ -22,11 +22,12 @@ export function AppLayout() {
           />
           <span className="text-sm font-medium text-muted-foreground">Personal Tracker</span>
         </header>
-        <main className="flex-1 p-4 md:p-6">
+        {/* SidebarInset ya es el <main> de la página. */}
+        <div className="flex-1 p-4 md:p-6">
           <div className="mx-auto w-full max-w-6xl">
             <Outlet />
           </div>
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

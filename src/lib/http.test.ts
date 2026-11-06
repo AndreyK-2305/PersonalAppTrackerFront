@@ -43,6 +43,38 @@ describe("apiFetch", () => {
     })
   })
 
+  it("envía el token CSRF y el JSON solo en las peticiones que modifican datos", async () => {
+    document.cookie = "XSRF-TOKEN=token-123"
+    const fetchMock = stubJsonResponse({})
+
+    await apiFetch("/api/v1/example", { method: "POST", json: { name: "Kevin" } })
+    await apiFetch("/api/v1/example")
+
+    const [, post] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    const [, get] = fetchMock.mock.calls[1] as unknown as [string, RequestInit]
+    expect(new Headers(post.headers).get("X-XSRF-TOKEN")).toBe("token-123")
+    expect(new Headers(post.headers).get("Content-Type")).toBe("application/json")
+    expect(post.body).toBe('{"name":"Kevin"}')
+    expect(new Headers(get.headers).has("X-XSRF-TOKEN")).toBe(false)
+    document.cookie = "XSRF-TOKEN=; max-age=0"
+  })
+
+  it("reintenta una vez si el backend rechaza el token CSRF", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ status: 403, code: "csrf_invalid" }), {
+          status: 403,
+          headers: { "Content-Type": "application/problem+json" },
+        }),
+      )
+      .mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200 }))
+    vi.stubGlobal("fetch", fetchMock)
+
+    await expect(apiFetch("/api/v1/example", { method: "POST" })).resolves.toEqual({ ok: true })
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
   it("traduce un fallo de red a ApiError con status 0", async () => {
     stubNetworkFailure()
 
