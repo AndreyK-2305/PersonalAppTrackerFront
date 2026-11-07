@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useCurrentProfile } from "@/features/auth/hooks/use-auth"
 import { formatDateTime } from "@/lib/format"
 import { ApiError } from "@/lib/http"
 import { cn } from "@/lib/utils"
@@ -53,6 +54,7 @@ function toSystemState(data: HealthResponse | undefined, error: Error | null): S
 
 export function SystemStatusPage() {
   const health = useQuery(healthQueryOptions)
+  const { timeZone } = useCurrentProfile()
   const lastCheck = Math.max(health.dataUpdatedAt, health.errorUpdatedAt)
 
   return (
@@ -86,7 +88,9 @@ export function SystemStatusPage() {
           <dl className="mt-6 grid gap-4 border-t pt-4 text-sm sm:grid-cols-3">
             <div>
               <dt className="text-muted-foreground">Última verificación</dt>
-              <dd className="font-medium">{lastCheck > 0 ? formatDateTime(lastCheck) : "—"}</dd>
+              <dd className="font-medium">
+                {lastCheck > 0 ? formatDateTime(lastCheck, timeZone) : "—"}
+              </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">Actualización automática</dt>

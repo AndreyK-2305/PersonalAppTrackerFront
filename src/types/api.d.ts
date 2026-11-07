@@ -20,6 +20,166 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/finance/transactions/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put: operations["update"]
+    post?: never
+    delete: operations["delete"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/accounts/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put: operations["update_1"]
+    post?: never
+    delete: operations["delete_1"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/transactions": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["list"]
+    put?: never
+    post: operations["record"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/setup": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["status"]
+    put?: never
+    post: operations["setUp"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/categories": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["list_1"]
+    put?: never
+    post: operations["create"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/categories/{id}/reactivate": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["reactivate"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/categories/{id}/archive": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["archive"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/accounts": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["list_2"]
+    put?: never
+    post: operations["create_1"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/accounts/{id}/reactivate": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["reactivate_1"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/accounts/{id}/archive": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["archive_1"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/v1/auth/register": {
     parameters: {
       query?: never
@@ -65,7 +225,39 @@ export interface paths {
     delete?: never
     options?: never
     head?: never
-    patch: operations["update"]
+    patch: operations["update_2"]
+    trace?: never
+  }
+  "/api/v1/finance/categories/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete: operations["delete_2"]
+    options?: never
+    head?: never
+    patch: operations["rename"]
+    trace?: never
+  }
+  "/api/v1/finance/summary": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["get_1"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
     trace?: never
   }
   "/api/v1/auth/registration": {
@@ -92,6 +284,141 @@ export interface components {
       currentPassword: string
       newPassword: string
     }
+    /**
+     * @description Campos por tipo, además de amount, date y los opcionales description, merchant y channel:
+     *     INCOME: destinationAccountId y categoryId (opcional, de ingreso).
+     *     EXPENSE: sourceAccountId y categoryId (opcional, de gasto).
+     *     TRANSFER: sourceAccountId y destinationAccountId, distintos.
+     *     ADJUSTMENT: accountId y direction.
+     */
+    TransactionRequest: {
+      /** @enum {string} */
+      type: "INCOME" | "EXPENSE" | "TRANSFER" | "ADJUSTMENT"
+      /** @example 85000.00 */
+      amount: string
+      /** Format: date */
+      date: string
+      /** Format: uuid */
+      sourceAccountId?: string
+      /** Format: uuid */
+      destinationAccountId?: string
+      /** Format: uuid */
+      accountId?: string
+      /** @enum {string} */
+      direction?: "INCREASE" | "DECREASE"
+      /** Format: uuid */
+      categoryId?: string
+      description?: string
+      merchant?: string
+      /** @enum {string} */
+      channel?:
+        | "CARD"
+        | "BANK_TRANSFER"
+        | "PSE"
+        | "CASH"
+        | "DEPOSIT"
+        | "WITHDRAWAL"
+        | "DIRECT_DEBIT"
+        | "OTHER"
+    }
+    TransactionResponse: {
+      /** Format: uuid */
+      id: string
+      /** @enum {string} */
+      type: "INCOME" | "EXPENSE" | "TRANSFER" | "ADJUSTMENT"
+      amount: string
+      currency: string
+      /** Format: date */
+      date: string
+      description?: string
+      merchant?: string
+      /** @enum {string} */
+      channel?:
+        | "CARD"
+        | "BANK_TRANSFER"
+        | "PSE"
+        | "CASH"
+        | "DEPOSIT"
+        | "WITHDRAWAL"
+        | "DIRECT_DEBIT"
+        | "OTHER"
+      /** Format: uuid */
+      sourceAccountId?: string
+      /** Format: uuid */
+      destinationAccountId?: string
+      /** Format: uuid */
+      categoryId?: string
+      /** @enum {string} */
+      direction?: "INCREASE" | "DECREASE"
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      updatedAt: string
+    }
+    /**
+     * @description Campos por tipo:
+     *     CASH: name y openingBalance (0 si se omite).
+     *     SAVINGS, CHECKING y DIGITAL_WALLET: name, institution, lastFourDigits (opcional) y openingBalance (0 si se omite; admite negativos).
+     *     CREDIT_CARD: name, institution, lastFourDigits (opcional), creditLimit e initialDebt (0 si se omite).
+     *     OTHER no se puede crear: lo crea la bienvenida de Finanzas.
+     */
+    AccountRequest: {
+      /** @enum {string} */
+      kind: "CASH" | "SAVINGS" | "CHECKING" | "DIGITAL_WALLET" | "CREDIT_CARD" | "OTHER"
+      name: string
+      institution?: string
+      lastFourDigits?: string
+      /** @example 150000.00 */
+      openingBalance?: string
+      /** @example 5000000.00 */
+      creditLimit?: string
+      /** @example 0.00 */
+      initialDebt?: string
+    }
+    AccountResponse: {
+      /** Format: uuid */
+      id: string
+      /** @enum {string} */
+      kind: "CASH" | "SAVINGS" | "CHECKING" | "DIGITAL_WALLET" | "CREDIT_CARD" | "OTHER"
+      name: string
+      currency: string
+      institution?: string
+      lastFourDigits?: string
+      openingBalance: string
+      balance?: string
+      creditLimit?: string
+      initialDebt?: string
+      debt?: string
+      availableCredit?: string
+      archived: boolean
+      systemManaged: boolean
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      updatedAt: string
+    }
+    SetUpRequest: {
+      withSuggestedCategories: boolean
+    }
+    FinanceStatusResponse: {
+      setUp: boolean
+    }
+    CreateCategoryRequest: {
+      /** @enum {string} */
+      kind: "INCOME" | "EXPENSE"
+      name: string
+      /** Format: uuid */
+      parentId?: string
+    }
+    CategoryResponse: {
+      /** Format: uuid */
+      id: string
+      /** @enum {string} */
+      kind: "INCOME" | "EXPENSE"
+      name: string
+      archived: boolean
+      subcategories: components["schemas"]["CategoryResponse"][]
+    }
     RegisterRequest: {
       email: string
       password: string
@@ -115,6 +442,67 @@ export interface components {
     UpdateProfileRequest: {
       displayName?: string
       timeZone?: string
+    }
+    RenameCategoryRequest: {
+      name: string
+    }
+    PageResponseTransactionResponse: {
+      items: components["schemas"]["TransactionResponse"][]
+      /** Format: int32 */
+      page: number
+      /** Format: int32 */
+      size: number
+      /** Format: int64 */
+      totalItems: number
+      /** Format: int32 */
+      totalPages: number
+    }
+    SummaryAccountTotals: {
+      /** Format: uuid */
+      accountId: string
+      income: string
+      expense: string
+    }
+    SummaryCategoryTotal: {
+      /** Format: uuid */
+      categoryId?: string
+      total: string
+    }
+    SummaryResponse: {
+      /** @enum {string} */
+      kind: "DAY" | "WEEK" | "MONTH"
+      /** Format: date */
+      start: string
+      /** Format: date */
+      end: string
+      currency: string
+      current: components["schemas"]["SummaryTotals"]
+      previous: components["schemas"]["SummaryTotals"]
+      byAccount: components["schemas"]["SummaryAccountTotals"][]
+      expensesByCategory: components["schemas"]["SummaryCategoryTotal"][]
+      trend: components["schemas"]["SummaryTrendPoint"][]
+    }
+    SummaryTotals: {
+      /** Format: date */
+      start: string
+      /** Format: date */
+      end: string
+      income: string
+      expense: string
+      net: string
+    }
+    SummaryTrendPoint: {
+      /** Format: date */
+      start: string
+      /** Format: date */
+      end: string
+      income: string
+      expense: string
+    }
+    AccountListResponse: {
+      accounts: components["schemas"]["AccountResponse"][]
+      netWorth: string
+      currency: string
     }
     RegistrationStatusResponse: {
       enabled: boolean
@@ -147,6 +535,368 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+    }
+  }
+  update: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TransactionRequest"]
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["TransactionResponse"]
+        }
+      }
+    }
+  }
+  delete: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  update_1: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AccountRequest"]
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["AccountResponse"]
+        }
+      }
+    }
+  }
+  delete_1: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  list: {
+    parameters: {
+      query?: {
+        from?: string
+        to?: string
+        accountId?: string
+        categoryId?: string
+        type?: "INCOME" | "EXPENSE" | "TRANSFER" | "ADJUSTMENT"
+        q?: string
+        sort?: "date,desc" | "date,asc" | "amount,desc" | "amount,asc"
+        page?: number
+        size?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["PageResponseTransactionResponse"]
+        }
+      }
+    }
+  }
+  record: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TransactionRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["TransactionResponse"]
+        }
+      }
+    }
+  }
+  status: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["FinanceStatusResponse"]
+        }
+      }
+    }
+  }
+  setUp: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SetUpRequest"]
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["FinanceStatusResponse"]
+        }
+      }
+    }
+  }
+  list_1: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["CategoryResponse"][]
+        }
+      }
+    }
+  }
+  create: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateCategoryRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["CategoryResponse"]
+        }
+      }
+    }
+  }
+  reactivate: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  archive: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  list_2: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["AccountListResponse"]
+        }
+      }
+    }
+  }
+  create_1: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AccountRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["AccountResponse"]
+        }
+      }
+    }
+  }
+  reactivate_1: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["AccountResponse"]
+        }
+      }
+    }
+  }
+  archive_1: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["AccountResponse"]
+        }
       }
     }
   }
@@ -218,7 +968,7 @@ export interface operations {
       }
     }
   }
-  update: {
+  update_2: {
     parameters: {
       query?: never
       header?: never
@@ -238,6 +988,73 @@ export interface operations {
         }
         content: {
           "*/*": components["schemas"]["ProfileResponse"]
+        }
+      }
+    }
+  }
+  delete_2: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  rename: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RenameCategoryRequest"]
+      }
+    }
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  get_1: {
+    parameters: {
+      query?: {
+        period?: "DAY" | "WEEK" | "MONTH"
+        date?: string
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["SummaryResponse"]
         }
       }
     }

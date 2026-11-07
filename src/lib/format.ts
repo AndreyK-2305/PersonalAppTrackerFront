@@ -36,7 +36,45 @@ const dateFormatter = new Intl.DateTimeFormat(LOCALE, {
 
 /** Fecha de negocio "2026-11-06" → "6 de nov de 2026". */
 export function formatDate(isoDate: string): string {
-  return dateFormatter.format(new Date(`${isoDate}T00:00:00Z`))
+  return dateFormatter.format(businessDate(isoDate))
+}
+
+/** Rango de fechas de negocio → "2 a 8 de nov de 2026"; si es un solo día, la fecha. */
+export function formatDateRange(start: string, end: string): string {
+  return dateFormatter.formatRange(businessDate(start), businessDate(end))
+}
+
+const monthFormatter = new Intl.DateTimeFormat(LOCALE, {
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+})
+
+/** Mes de una fecha de negocio → "noviembre de 2026". */
+export function formatMonth(isoDate: string): string {
+  return monthFormatter.format(businessDate(isoDate))
+}
+
+const shortMonthFormatter = new Intl.DateTimeFormat(LOCALE, { month: "short", timeZone: "UTC" })
+
+/** Mes abreviado sin punto, para ejes de gráficas → "nov". */
+export function formatShortMonth(isoDate: string): string {
+  return shortMonthFormatter.format(businessDate(isoDate)).replace(".", "")
+}
+
+const shortDateFormatter = new Intl.DateTimeFormat(LOCALE, {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+})
+
+/** Día y mes abreviado, para ejes de gráficas → "2 de nov". */
+export function formatShortDate(isoDate: string): string {
+  return shortDateFormatter.format(businessDate(isoDate))
+}
+
+function businessDate(isoDate: string): Date {
+  return new Date(`${isoDate}T00:00:00Z`)
 }
 
 /** Instante → "6 de nov de 2026, 9:30 a. m." en la zona indicada (por defecto, la del navegador). */

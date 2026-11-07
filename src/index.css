@@ -72,6 +72,9 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+  /* Ingresos y gastos en las gráficas de finanzas (emerald-500 y rose-500 de Tailwind). */
+  --chart-income: oklch(0.696 0.17 162.48);
+  --chart-expense: oklch(0.645 0.246 16.439);
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -107,6 +110,8 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
+  --chart-income: oklch(0.765 0.177 163.223);
+  --chart-expense: oklch(0.712 0.194 13.428);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);

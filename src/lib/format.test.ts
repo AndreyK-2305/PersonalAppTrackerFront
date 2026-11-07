@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest"
-import { formatDate, formatDateTime, formatMoney } from "./format"
+import {
+  formatDate,
+  formatDateRange,
+  formatDateTime,
+  formatMoney,
+  formatMonth,
+  formatShortDate,
+  formatShortMonth,
+} from "./format"
 
 // Intl usa espacios de no separación entre el símbolo y el número, y en "a. m.";
 // NFKC los convierte en espacios normales para comparar.
@@ -29,6 +37,22 @@ describe("formatDate", () => {
   it("muestra la fecha de negocio sin correrla de día por la zona horaria", () => {
     expect(formatDate("2026-11-06")).toBe("6 de nov de 2026")
     expect(formatDate("2026-01-01")).toBe("1 de ene de 2026")
+  })
+})
+
+describe("formatDateRange", () => {
+  it("abrevia los rangos dentro del mismo mes y muestra un solo día como fecha", () => {
+    expect(formatDateRange("2026-11-02", "2026-11-08")).toBe("2 a 8 de nov de 2026")
+    expect(formatDateRange("2026-10-26", "2026-11-01")).toBe("26 de oct al 1 de nov de 2026")
+    expect(formatDateRange("2026-11-06", "2026-11-06")).toBe("6 de nov de 2026")
+  })
+})
+
+describe("formatMonth", () => {
+  it("muestra el mes completo y el mes abreviado para las gráficas", () => {
+    expect(formatMonth("2026-11-06")).toBe("noviembre de 2026")
+    expect(formatShortMonth("2026-11-06")).toBe("nov")
+    expect(formatShortDate("2026-11-02")).toBe("2 de nov")
   })
 })
 

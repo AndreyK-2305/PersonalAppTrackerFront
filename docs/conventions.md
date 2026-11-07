@@ -57,19 +57,25 @@ Complementan las decisiones del sistema, documentadas en el repositorio del back
 ## Montos y fechas (ADR-0006)
 
 - **Montos:** llegan y se envían como **cadenas decimales**. Nunca se convierten a `number` para hacer operaciones; el frontend solo los formatea con `formatMoney`. Los totales, cuotas e intereses los calcula el backend.
+  - **Captura:** `MoneyField` (`components/common`) acepta el formato es-CO (punto para miles y coma para decimales) y `parseMoneyInput` (`lib/money.ts`) lo convierte a la cadena de la API. Rechaza textos ambiguos como "150.5", para evitar el error de ×1000.
+  - **Comparar montos:** `compareDecimal`, que es exacta (usa enteros de centavos, no `number`).
+  - **Gráficas:** `chartValue` convierte a `number` solo para dibujar; el texto que se muestra siempre sale de la cadena original.
 - **Fechas de negocio** (`"2026-11-06"`): se muestran con `formatDate`. No se usa `new Date("2026-11-06")` para mostrarlas, porque en Colombia aparecería el día anterior.
-- **Instantes:** se muestran con `formatDateTime`.
+- **Instantes:** se muestran con `formatDateTime`, en la zona horaria del perfil.
+- **"Hoy":** se calcula con `todayIn(perfil.timeZone)` (`lib/dates.ts`), nunca con la zona del navegador. Los periodos y rangos se muestran con `formatMonth` y `formatDateRange`.
 
 ## Interfaz
 
 - **Componentes de shadcn/ui:** se agregan con `npx shadcn@latest add <componente>` en `src/components/ui/`. Son código propio y se pueden ajustar, pero conviene minimizar los cambios para facilitar futuras actualizaciones.
+- **Diálogos con formulario:** la página les pasa una `key` nueva en cada apertura, así el formulario empieza con los datos correctos aunque el diálogo anterior no haya terminado su animación de cierre.
 - **Estados de toda vista con datos:**
   - **cargando:** `Skeleton` con la forma del contenido;
   - **vacío:** mensaje y acción para crear;
   - **error:** mensaje claro y opción de reintentar.
 - **Textos:** en español, con tuteo, como el resto de la interfaz.
 - **Rutas y navegación:**
-  - Las rutas visibles van en español (`/sistema`, `/finanzas/cuentas`).
+  - Las rutas visibles van en español (`/sistema`, `/finanzas/productos`), igual que los parámetros de filtros que viven en la URL (`?periodo=semana&fecha=…`, `?tipo=EXPENSE&pagina=2`).
+  - Cada página se carga en diferido con `lazy` en `src/routes/routes.tsx`, para que la carga inicial no incluya lo que no se usa (por ejemplo, Recharts).
   - Una entrada de navegación se agrega solo cuando su página existe.
 - **Accesibilidad:**
   - Los botones que solo tienen ícono llevan `aria-label`.
@@ -83,7 +89,9 @@ Complementan las decisiones del sistema, documentadas en el repositorio del back
 - **Pantallas completas:** se prueban con `renderAt(ruta)` (`src/test/render.tsx`), que usa las rutas y los providers reales.
 - **Respuestas de la API:** se simulan con `stubApi({ "GET /api/v1/me": { body } })`; una ruta no definida responde 404.
 - Se prueba el comportamiento visible: se buscan elementos por rol y texto, como lo haría el usuario, y no detalles de implementación.
-- `fetch` se sustituye con las utilidades de `src/test/http-stubs.ts`.
+- `fetch` se sustituye con las utilidades de `src/test/http-stubs.ts`. Una respuesta 204 se simula con `() => new Response(null, { status: 204 })`.
+- **Datos de finanzas:** `src/test/finance-fixtures.ts` trae productos, categorías, movimientos y un resumen de ejemplo, y `financeApi()` las respuestas de una cuenta con Finanzas configurada.
+- **Tiempos:** las páginas se cargan en diferido, así que la primera visita en una prueba puede tardar varios segundos; `asyncUtilTimeout` es de 10 s.
 - Cada pantalla nueva prueba sus estados de carga, error y éxito.
 
 ## Estilo de código

@@ -22,16 +22,20 @@ export default defineConfig(({ mode }) => {
       port: 5174,
       strictPort: true,
       // Mismo origen: el navegador habla solo con Vite, que reenvía la API al backend (ADR-0007).
+      // changeOrigin: false conserva el Host del navegador (localhost:5174): el backend lo compara
+      // con la cabecera Origin y, si el proxy lo cambiara por el del backend, rechazaría los POST
+      // por CORS. La forma corta ("/api": url) activa changeOrigin, por eso se declara explícito.
       proxy: {
-        "/api": backendUrl,
-        "/actuator/health": backendUrl,
+        "/api": { target: backendUrl, changeOrigin: false },
+        "/actuator/health": { target: backendUrl, changeOrigin: false },
       },
     },
     test: {
       environment: "jsdom",
       setupFiles: ["./src/test/setup.ts"],
       css: false,
-      testTimeout: 15_000,
+      // Ver asyncUtilTimeout en src/test/setup.ts.
+      testTimeout: 30_000,
     },
   }
 })
