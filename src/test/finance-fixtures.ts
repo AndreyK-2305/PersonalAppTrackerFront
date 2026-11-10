@@ -106,6 +106,8 @@ export const expense: Transaction = {
   channel: "CARD",
   sourceAccountId: cardAccount.id,
   categoryId: "cat-groceries",
+  origin: "MANUAL",
+  amountEstimated: false,
   createdAt: CREATED_AT,
   updatedAt: CREATED_AT,
 }
@@ -119,6 +121,8 @@ export const income: Transaction = {
   description: "Nómina",
   destinationAccountId: savingsAccount.id,
   categoryId: salaryCategory.id,
+  origin: "MANUAL",
+  amountEstimated: false,
   createdAt: CREATED_AT,
   updatedAt: CREATED_AT,
 }
@@ -132,6 +136,8 @@ export const transfer: Transaction = {
   description: "Pago tarjeta",
   sourceAccountId: savingsAccount.id,
   destinationAccountId: cardAccount.id,
+  origin: "MANUAL",
+  amountEstimated: false,
   createdAt: CREATED_AT,
   updatedAt: CREATED_AT,
 }

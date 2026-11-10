@@ -12,6 +12,13 @@ Complementan las decisiones del sistema, documentadas en el repositorio del back
   - `pages/`.
 - Solo se crean las subcarpetas que se usan.
 - Lo que comparten varias funcionalidades sube a `components/common`, `hooks` o `lib`. Una funcionalidad no importa componentes internos de otra.
+  - **Excepción documentada:** `capture` aporta componentes que se muestran en páginas de otras funcionalidades. `OwnKeysCard` va en Perfil y `ReviewList` en Movimientos.
+- **Funcionalidades:**
+  - `auth` y `profile`;
+  - `finance`;
+  - `capture`: llaves Bre-B y bandeja "Por revisar";
+  - `connections`: tokens de dispositivo;
+  - `system-status`.
 - No hay carpetas `services/` ni `stores/`: las llamadas a la API viven en su funcionalidad y el estado del servidor lo maneja TanStack Query.
 
 ## Datos del servidor
@@ -74,7 +81,9 @@ Complementan las decisiones del sistema, documentadas en el repositorio del back
   - **error:** mensaje claro y opción de reintentar.
 - **Textos:** en español, con tuteo, como el resto de la interfaz.
 - **Rutas y navegación:**
-  - Las rutas visibles van en español (`/sistema`, `/finanzas/productos`), igual que los parámetros de filtros que viven en la URL (`?periodo=semana&fecha=…`, `?tipo=EXPENSE&pagina=2`).
+  - Las rutas visibles van en español (`/ajustes/perfil`, `/finanzas/productos`), igual que los parámetros de filtros que viven en la URL (`?periodo=semana&fecha=…`, `?tipo=EXPENSE&pagina=2`, `?vista=revisar`).
+  - **Navegación por herramientas (D9):** un grupo por herramienta (hoy Finanzas) y "Ajustes" al final, con Perfil, Conexiones y Estado del sistema. Las rutas anteriores `/perfil` y `/sistema` redirigen a Ajustes.
+  - **Revisión de la captura:** es una vista de Movimientos (`?vista=revisar` o `?vista=clasificar`), no una sección aparte.
   - Cada página se carga en diferido con `lazy` en `src/routes/routes.tsx`, para que la carga inicial no incluya lo que no se usa (por ejemplo, Recharts).
   - Una entrada de navegación se agrega solo cuando su página existe.
 - **Accesibilidad:**
@@ -91,7 +100,13 @@ Complementan las decisiones del sistema, documentadas en el repositorio del back
 - Se prueba el comportamiento visible: se buscan elementos por rol y texto, como lo haría el usuario, y no detalles de implementación.
 - `fetch` se sustituye con las utilidades de `src/test/http-stubs.ts`. Una respuesta 204 se simula con `() => new Response(null, { status: 204 })`.
 - **Datos de finanzas:** `src/test/finance-fixtures.ts` trae productos, categorías, movimientos y un resumen de ejemplo, y `financeApi()` las respuestas de una cuenta con Finanzas configurada.
-- **Tiempos:** las páginas se cargan en diferido, así que la primera visita en una prueba puede tardar varios segundos; `asyncUtilTimeout` es de 10 s.
+- **Datos de la captura:** `src/test/capture-fixtures.ts` trae notificaciones por revisar, llaves, un token y una billetera, todo anonimizado. Para una respuesta 204, `noContent` de `http-stubs.ts`.
+- **Tiempos:**
+  - Las páginas se cargan en diferido, así que la primera visita en una prueba puede tardar varios segundos.
+  - `asyncUtilTimeout` es de 20 s.
+  - Vitest usa como máximo 6 procesos (`maxWorkers` en `vite.config.ts`). Con un proceso por núcleo, las pruebas que abren primero el resumen pasaban de 20 s.
+  - Con la máquina cargada (por ejemplo, con `./mvnw verify` corriendo al mismo tiempo) pueden volver a pasar el límite: conviene correr la suite con la CPU libre.
+- **Datos que llegan en otro orden:** si un componente depende de dos consultas, prueba también que la segunda llegue después; ver "«Es mía» usa la primera cuenta disponible…" en `ReviewList.test.tsx`.
 - Cada pantalla nueva prueba sus estados de carga, error y éxito.
 
 ## Estilo de código

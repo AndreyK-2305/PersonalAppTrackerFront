@@ -6,6 +6,12 @@ export const profileSchema = z.object({
   timeZone: z.string().min(1, "Selecciona una zona horaria."),
 })
 
+/** Opcionales: un texto vacío borra el valor guardado. */
+export const ownerNamesSchema = z.object({
+  givenNames: z.string().trim().max(100, "Máximo 100 caracteres."),
+  surnames: z.string().trim().max(100, "Máximo 100 caracteres."),
+})
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "Ingresa tu contraseña actual."),
@@ -18,4 +24,5 @@ export const changePasswordSchema = z
   })
 
 export type ProfileValues = z.infer<typeof profileSchema>
+export type OwnerNamesValues = z.infer<typeof ownerNamesSchema>
 export type ChangePasswordValues = z.infer<typeof changePasswordSchema>

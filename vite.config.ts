@@ -36,6 +36,10 @@ export default defineConfig(({ mode }) => {
       css: false,
       // Ver asyncUtilTimeout en src/test/setup.ts.
       testTimeout: 30_000,
+      // Cada proceso levanta jsdom y la aplicación completa. Con un proceso por núcleo (11 en la
+      // máquina de desarrollo), la primera carga del resumen pasaba de 20 s; con 6, la suite pasa y
+      // tarda unos 85 s. En CI no cambia nada: el runner tiene menos núcleos.
+      maxWorkers: 6,
     },
   }
 })

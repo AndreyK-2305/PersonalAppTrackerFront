@@ -47,12 +47,12 @@ describe("LoginPage", () => {
 
   it("tras iniciar sesión lleva a la página que se había solicitado", async () => {
     stubApi({ ...loggedOut, "POST /api/v1/auth/login": { body: testProfile } })
-    const router = renderAt("/iniciar-sesion?redirect=%2Fperfil")
+    const router = renderAt("/iniciar-sesion?redirect=%2Fajustes%2Fperfil")
 
     await fillAndSubmit("kevin@example.com", "contraseña-segura-1")
 
     expect(await screen.findByRole("heading", { name: "Mi perfil" })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe("/perfil")
+    expect(router.state.location.pathname).toBe("/ajustes/perfil")
   })
 
   it("ofrece crear una cuenta solo si el registro está habilitado", async () => {

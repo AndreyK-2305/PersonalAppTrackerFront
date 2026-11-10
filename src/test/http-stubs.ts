@@ -11,6 +11,9 @@ export function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
   })
 }
 
+/** Respuesta 204 sin cuerpo (una respuesta 204 con cuerpo hace fallar a `Response`). */
+export const noContent = () => new Response(null, { status: 204 })
+
 /** Respuesta de error con formato ProblemDetail. */
 export function problem(status: number, code: string, detail = "Error de prueba."): JsonReply {
   return { status, body: { status, code, detail }, contentType: "application/problem+json" }

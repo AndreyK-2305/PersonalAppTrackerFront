@@ -67,7 +67,7 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link to="/perfil">
+              <Link to="/ajustes/perfil">
                 <UserIcon aria-hidden />
                 Mi perfil
               </Link>

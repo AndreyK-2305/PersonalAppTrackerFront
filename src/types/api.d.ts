@@ -52,7 +52,7 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  "/api/v1/finance/transactions": {
+  "/api/v1/me/device-tokens": {
     parameters: {
       query?: never
       header?: never
@@ -60,6 +60,22 @@ export interface paths {
       cookie?: never
     }
     get: operations["list"]
+    put?: never
+    post: operations["create"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/transactions": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["list_1"]
     put?: never
     post: operations["record"]
     delete?: never
@@ -91,9 +107,9 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["list_1"]
+    get: operations["list_2"]
     put?: never
-    post: operations["create"]
+    post: operations["create_1"]
     delete?: never
     options?: never
     head?: never
@@ -139,9 +155,9 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["list_2"]
+    get: operations["list_3"]
     put?: never
-    post: operations["create_1"]
+    post: operations["create_2"]
     delete?: never
     options?: never
     head?: never
@@ -174,6 +190,118 @@ export interface paths {
     get?: never
     put?: never
     post: operations["archive_1"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/device/capture/notifications": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["receive"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/capture/transactions/{transactionId}/not-own": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["notOwn"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/capture/reviews/{id}/own-transfer": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["ownTransfer"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/capture/reviews/{id}/discard": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["discard"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/capture/reviews/{id}/confirm": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["confirm"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/capture/reviews/{id}/amount": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["manualAmount"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/capture/own-keys": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["list_4"]
+    put?: never
+    post: operations["add"]
     delete?: never
     options?: never
     head?: never
@@ -260,6 +388,22 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/capture/reviews": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["list_5"]
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/v1/auth/registration": {
     parameters: {
       query?: never
@@ -271,6 +415,38 @@ export interface paths {
     put?: never
     post?: never
     delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/me/device-tokens/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete: operations["revoke"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/capture/own-keys/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete: operations["remove"]
     options?: never
     head?: never
     patch?: never
@@ -350,6 +526,9 @@ export interface components {
       categoryId?: string
       /** @enum {string} */
       direction?: "INCREASE" | "DECREASE"
+      /** @enum {string} */
+      origin: "MANUAL" | "CAPTURE"
+      amountEstimated: boolean
       /** Format: date-time */
       createdAt: string
       /** Format: date-time */
@@ -397,6 +576,27 @@ export interface components {
       /** Format: date-time */
       updatedAt: string
     }
+    CreateDeviceTokenRequest: {
+      name: string
+      scopes: "FINANCE_CAPTURE"[]
+    }
+    CreatedDeviceTokenResponse: {
+      token: components["schemas"]["DeviceTokenResponse"]
+      secret: string
+    }
+    DeviceTokenResponse: {
+      /** Format: uuid */
+      id: string
+      name: string
+      scopes: "FINANCE_CAPTURE"[]
+      active: boolean
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      lastUsedAt?: string
+      /** Format: date-time */
+      revokedAt?: string
+    }
     SetUpRequest: {
       withSuggestedCategories: boolean
     }
@@ -419,6 +619,34 @@ export interface components {
       archived: boolean
       subcategories: components["schemas"]["CategoryResponse"][]
     }
+    NotificationRequest: {
+      app: string
+      title?: string
+      body: string
+      /** Format: date-time */
+      receivedAt: string
+    }
+    OwnTransferRequest: {
+      /** Format: uuid */
+      destinationProductId: string
+    }
+    AmountRequest: {
+      amount: string
+    }
+    OwnKeyRequest: {
+      key: string
+      /** Format: uuid */
+      productId: string
+    }
+    OwnKeyResponse: {
+      /** Format: uuid */
+      id: string
+      key: string
+      /** Format: uuid */
+      productId: string
+      /** Format: date-time */
+      createdAt: string
+    }
     RegisterRequest: {
       email: string
       password: string
@@ -430,6 +658,8 @@ export interface components {
       email: string
       displayName: string
       timeZone: string
+      givenNames?: string
+      surnames?: string
       /** Format: date-time */
       createdAt: string
       /** Format: date-time */
@@ -442,6 +672,8 @@ export interface components {
     UpdateProfileRequest: {
       displayName?: string
       timeZone?: string
+      givenNames?: string
+      surnames?: string
     }
     RenameCategoryRequest: {
       name: string
@@ -503,6 +735,27 @@ export interface components {
       accounts: components["schemas"]["AccountResponse"][]
       netWorth: string
       currency: string
+    }
+    ReviewResponse: {
+      /** Format: uuid */
+      id: string
+      /** @enum {string} */
+      reason:
+        | "UNRECOGNIZED_TEXT"
+        | "AMBIGUOUS_PRODUCT"
+        | "POSSIBLE_OWN_TRANSFER"
+        | "MISSING_EXCHANGE_RATE"
+      app: string
+      title: string
+      body: string
+      /** Format: date-time */
+      receivedAt: string
+      /** Format: uuid */
+      transactionId?: string
+      amount?: string
+      currency?: string
+      /** Format: uuid */
+      productId?: string
     }
     RegistrationStatusResponse: {
       enabled: boolean
@@ -632,6 +885,50 @@ export interface operations {
   }
   list: {
     parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["DeviceTokenResponse"][]
+        }
+      }
+    }
+  }
+  create: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateDeviceTokenRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["CreatedDeviceTokenResponse"]
+        }
+      }
+    }
+  }
+  list_1: {
+    parameters: {
       query?: {
         from?: string
         to?: string
@@ -639,6 +936,7 @@ export interface operations {
         categoryId?: string
         type?: "INCOME" | "EXPENSE" | "TRANSFER" | "ADJUSTMENT"
         q?: string
+        uncategorized?: boolean
         sort?: "date,desc" | "date,asc" | "amount,desc" | "amount,asc"
         page?: number
         size?: number
@@ -728,7 +1026,7 @@ export interface operations {
       }
     }
   }
-  list_1: {
+  list_2: {
     parameters: {
       query?: never
       header?: never
@@ -748,7 +1046,7 @@ export interface operations {
       }
     }
   }
-  create: {
+  create_1: {
     parameters: {
       query?: never
       header?: never
@@ -812,7 +1110,7 @@ export interface operations {
       }
     }
   }
-  list_2: {
+  list_3: {
     parameters: {
       query?: never
       header?: never
@@ -832,7 +1130,7 @@ export interface operations {
       }
     }
   }
-  create_1: {
+  create_2: {
     parameters: {
       query?: never
       header?: never
@@ -896,6 +1194,180 @@ export interface operations {
         }
         content: {
           "*/*": components["schemas"]["AccountResponse"]
+        }
+      }
+    }
+  }
+  receive: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["NotificationRequest"]
+      }
+    }
+    responses: {
+      /** @description Accepted */
+      202: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  notOwn: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        transactionId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  ownTransfer: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["OwnTransferRequest"]
+      }
+    }
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  discard: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  confirm: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  manualAmount: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AmountRequest"]
+      }
+    }
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  list_4: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["OwnKeyResponse"][]
+        }
+      }
+    }
+  }
+  add: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["OwnKeyRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["OwnKeyResponse"]
         }
       }
     }
@@ -1059,6 +1531,26 @@ export interface operations {
       }
     }
   }
+  list_5: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["ReviewResponse"][]
+        }
+      }
+    }
+  }
   registrationStatus: {
     parameters: {
       query?: never
@@ -1076,6 +1568,46 @@ export interface operations {
         content: {
           "*/*": components["schemas"]["RegistrationStatusResponse"]
         }
+      }
+    }
+  }
+  revoke: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  remove: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
       }
     }
   }

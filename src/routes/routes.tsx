@@ -93,19 +93,35 @@ export const routes: RouteObject[] = [
                 ],
               },
               {
-                path: "sistema",
-                lazy: page(
-                  () => import("@/features/system-status/pages/SystemStatusPage"),
-                  (m) => m.SystemStatusPage,
-                ),
+                path: "ajustes",
+                children: [
+                  { index: true, element: <Navigate to="/ajustes/perfil" replace /> },
+                  {
+                    path: "perfil",
+                    lazy: page(
+                      () => import("@/features/profile/pages/ProfilePage"),
+                      (m) => m.ProfilePage,
+                    ),
+                  },
+                  {
+                    path: "conexiones",
+                    lazy: page(
+                      () => import("@/features/connections/pages/ConnectionsPage"),
+                      (m) => m.ConnectionsPage,
+                    ),
+                  },
+                  {
+                    path: "sistema",
+                    lazy: page(
+                      () => import("@/features/system-status/pages/SystemStatusPage"),
+                      (m) => m.SystemStatusPage,
+                    ),
+                  },
+                ],
               },
-              {
-                path: "perfil",
-                lazy: page(
-                  () => import("@/features/profile/pages/ProfilePage"),
-                  (m) => m.ProfilePage,
-                ),
-              },
+              // Rutas anteriores a la Etapa 4: se conservan para no romper enlaces guardados.
+              { path: "perfil", element: <Navigate to="/ajustes/perfil" replace /> },
+              { path: "sistema", element: <Navigate to="/ajustes/sistema" replace /> },
               { path: "*", element: <NotFoundPage /> },
             ],
           },

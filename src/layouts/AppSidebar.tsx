@@ -2,7 +2,9 @@ import {
   ActivityIcon,
   ChartColumnIcon,
   FolderTreeIcon,
+  PlugIcon,
   ReceiptTextIcon,
+  UserRoundIcon,
   WalletCardsIcon,
   WalletIcon,
   type LucideIcon,
@@ -32,7 +34,8 @@ interface NavItem {
   end?: boolean
 }
 
-// Solo rutas que existen. Cada módulo agrega aquí su entrada cuando se implementa.
+// Un grupo por herramienta (Finanzas; más adelante Garaje, Metas…) y Ajustes al final (D9). Solo
+// rutas que existen: cada herramienta agrega aquí su grupo cuando se implementa.
 const navigation: { label: string; items: NavItem[] }[] = [
   {
     label: "Finanzas",
@@ -44,8 +47,12 @@ const navigation: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: "Sistema",
-    items: [{ label: "Estado del sistema", to: "/sistema", icon: ActivityIcon }],
+    label: "Ajustes",
+    items: [
+      { label: "Perfil", to: "/ajustes/perfil", icon: UserRoundIcon },
+      { label: "Conexiones", to: "/ajustes/conexiones", icon: PlugIcon },
+      { label: "Estado del sistema", to: "/ajustes/sistema", icon: ActivityIcon },
+    ],
   },
 ]
 

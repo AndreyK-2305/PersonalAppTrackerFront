@@ -25,10 +25,10 @@ describe("rutas", () => {
       "GET /api/v1/auth/registration": { body: { enabled: false } },
     })
 
-    const router = renderAt("/perfil")
+    const router = renderAt("/ajustes/perfil")
 
     await waitFor(() => expect(router.state.location.pathname).toBe("/iniciar-sesion"))
-    expect(router.state.location.search).toBe("?redirect=%2Fperfil")
+    expect(router.state.location.search).toBe("?redirect=%2Fajustes%2Fperfil")
     expect(await screen.findByLabelText("Correo electrónico")).toBeInTheDocument()
   })
 
@@ -47,5 +47,13 @@ describe("rutas", () => {
 
     expect(await screen.findByRole("heading", { name: "Página no encontrada" })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Ir al inicio" })).toHaveAttribute("href", "/")
+  })
+
+  it("las rutas anteriores de perfil y sistema llevan a Ajustes", async () => {
+    stubApi({ "GET /api/v1/me": { body: testProfile } })
+
+    const router = renderAt("/perfil")
+
+    await waitFor(() => expect(router.state.location.pathname).toBe("/ajustes/perfil"))
   })
 })

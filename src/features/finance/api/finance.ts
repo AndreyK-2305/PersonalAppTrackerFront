@@ -30,6 +30,8 @@ export type TransactionFilters = {
   categoryId?: string
   type?: TransactionType
   q?: string
+  /** Solo ingresos y gastos sin categoría ("Por clasificar"). */
+  uncategorized?: boolean
   sort?: TransactionSort
   page?: number
   size?: number
@@ -143,10 +145,10 @@ export function deleteTransaction(id: string): Promise<void> {
 }
 
 /** Arma la cadena de consulta con los valores presentes, en un orden estable. */
-function queryString(params: Record<string, string | number | undefined>): string {
+function queryString(params: Record<string, string | number | boolean | undefined>): string {
   const search = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
-    if (value !== undefined && value !== "") {
+    if (value !== undefined && value !== "" && value !== false) {
       search.set(key, String(value))
     }
   }

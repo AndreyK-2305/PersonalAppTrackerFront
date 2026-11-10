@@ -5,7 +5,8 @@ import { afterEach, vi } from "vitest"
 // Varias pruebas renderizan la aplicación completa (rutas, layout, formularios). Las páginas se
 // cargan en diferido y la primera visita transforma su módulo (el resumen incluye Recharts); en
 // jsdom, y con varias pruebas en paralelo, encontrar un elemento puede tardar varios segundos.
-configure({ asyncUtilTimeout: 10_000 })
+// Con 16 archivos en paralelo, la primera carga del resumen llegó a superar 10 s.
+configure({ asyncUtilTimeout: 20_000 })
 
 afterEach(() => {
   cleanup()

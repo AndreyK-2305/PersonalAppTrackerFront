@@ -1,11 +1,13 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import {
   ArrowRightLeftIcon,
+  ArrowUpRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   MoreHorizontalIcon,
   PencilIcon,
   PlusIcon,
+  RadioTowerIcon,
   ReceiptTextIcon,
   SearchIcon,
   Trash2Icon,
@@ -17,6 +19,7 @@ import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/common/ConfirmDialog"
 import { ErrorState } from "@/components/common/ErrorState"
 import { PageHeader } from "@/components/common/PageHeader"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import {
@@ -30,6 +33,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Table,
   TableBody,
@@ -38,6 +42,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { reviewsQueryOptions } from "@/features/capture/api/capture"
+import { ReviewList } from "@/features/capture/components/ReviewList"
+import { useMarkNotOwn } from "@/features/capture/hooks/use-capture"
 import { formatDate } from "@/lib/format"
 import {
   accountsQueryOptions,
@@ -64,8 +71,19 @@ const SORT_LABELS: Record<TransactionSort, string> = {
 }
 
 /**
+ * Vistas de Movimientos (D9): todos, "Por revisar" (notificaciones de la captura que esperan una
+ * decisión) y "Por clasificar" (ingresos y gastos sin categoría).
+ */
+type View = "todos" | "revisar" | "clasificar"
+
+function viewFrom(params: URLSearchParams): View {
+  const value = params.get("vista")
+  return value === "revisar" || value === "clasificar" ? value : "todos"
+}
+
+/**
  * Los filtros viven en la URL (en español) para que se puedan compartir y el botón Atrás funcione:
- * ?desde=&hasta=&producto=&categoria=&tipo=&q=&orden=&pagina=
+ * ?vista=&desde=&hasta=&producto=&categoria=&tipo=&q=&orden=&pagina=
  */
 function filtersFrom(params: URLSearchParams): TransactionFilters {
   const page = Number(params.get("pagina") ?? "1")
@@ -76,6 +94,7 @@ function filtersFrom(params: URLSearchParams): TransactionFilters {
     categoryId: params.get("categoria") || undefined,
     type: (params.get("tipo") || undefined) as TransactionType | undefined,
     q: params.get("q") || undefined,
+    uncategorized: viewFrom(params) === "clasificar" || undefined,
     sort: (params.get("orden") || undefined) as TransactionSort | undefined,
     page: Number.isInteger(page) && page > 1 ? page - 1 : undefined,
     size: PAGE_SIZE,
@@ -84,11 +103,15 @@ function filtersFrom(params: URLSearchParams): TransactionFilters {
 
 export function TransactionsPage() {
   const [params, setParams] = useSearchParams()
+  const view = viewFrom(params)
   const filters = filtersFrom(params)
   const transactions = useQuery({
     ...transactionsQueryOptions(filters),
     placeholderData: keepPreviousData,
+    enabled: view !== "revisar",
   })
+  const reviews = useQuery(reviewsQueryOptions)
+  const markNotOwn = useMarkNotOwn()
   const accounts = useQuery(accountsQueryOptions)
   const categories = useQuery(categoriesQueryOptions)
   const deleteTransaction = useDeleteTransaction()
@@ -117,6 +140,17 @@ export function TransactionsPage() {
       return next
     })
   }
+  const setView = (next: string) =>
+    setParams((current) => {
+      const params = new URLSearchParams(current)
+      if (next === "todos") {
+        params.delete("vista")
+      } else {
+        params.set("vista", next)
+      }
+      params.delete("pagina")
+      return params
+    })
   const goToPage = (page: number) =>
     setParams((current) => {
       const next = new URLSearchParams(current)
@@ -151,137 +185,176 @@ export function TransactionsPage() {
         }
       />
 
-      <TransactionFiltersBar
-        params={params}
-        accounts={accountList.map((account) => ({ value: account.id, label: account.name }))}
-        categories={categoryOptions(categoryList).map((option) => ({
-          value: option.id,
-          label: option.label,
-        }))}
-        onChange={setFilter}
-        onClear={() => setParams({})}
-        hasFilters={hasFilters}
-      />
+      <Tabs value={view} onValueChange={setView}>
+        <TabsList>
+          <TabsTrigger value="todos">Todos</TabsTrigger>
+          <TabsTrigger value="revisar">
+            Por revisar
+            {(reviews.data?.length ?? 0) > 0 && (
+              <Badge className="ml-1 h-5 min-w-5 px-1.5 tabular-nums">{reviews.data?.length}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="clasificar">Por clasificar</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-      {transactions.isPending ? (
-        <Skeleton className="h-72 w-full" aria-label="Cargando movimientos" />
-      ) : transactions.isError ? (
-        <ErrorState
-          icon={ReceiptTextIcon}
-          title="No fue posible cargar tus movimientos"
-          description={transactions.error.message}
-          action={<Button onClick={() => transactions.refetch()}>Reintentar</Button>}
-        />
-      ) : transactions.data.totalItems === 0 ? (
-        <Card className="flex flex-col items-center gap-3 py-10 text-center">
-          <ReceiptTextIcon className="size-8 text-muted-foreground" aria-hidden />
-          <p className="text-sm text-muted-foreground">
-            {hasFilters
-              ? "Ningún movimiento coincide con los filtros."
-              : "Aún no has registrado movimientos."}
-          </p>
-          {!hasFilters && (
-            <Button onClick={() => openForm()}>
-              <PlusIcon aria-hidden />
-              Registrar el primero
-            </Button>
-          )}
-        </Card>
+      {view === "revisar" ? (
+        <ReviewList accounts={accountList} />
       ) : (
-        <Card className="py-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Detalle</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead>Producto</TableHead>
-                <TableHead className="text-right">Monto</TableHead>
-                <TableHead>
-                  <span className="sr-only">Acciones</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.data.items.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="whitespace-nowrap">
-                    {formatDate(transaction.date)}
-                  </TableCell>
-                  <TableCell className="max-w-64">
-                    <TransactionDetail transaction={transaction} />
-                  </TableCell>
-                  <TableCell>
-                    {transaction.type === "INCOME" || transaction.type === "EXPENSE" ? (
-                      transaction.categoryId ? (
-                        categoryNames.get(transaction.categoryId)
-                      ) : (
-                        <span className="text-muted-foreground">Sin categoría</span>
-                      )
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <TransactionAccounts transaction={transaction} names={accountNames} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <TransactionAmount transaction={transaction} />
-                  </TableCell>
-                  <TableCell className="w-10">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon-sm" aria-label="Acciones del movimiento">
-                          <MoreHorizontalIcon aria-hidden />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={() => openForm(transaction)}>
-                          <PencilIcon aria-hidden />
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          variant="destructive"
-                          onSelect={() => setDeleting(transaction)}
-                        >
-                          <Trash2Icon aria-hidden />
-                          Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="flex items-center justify-between gap-2 border-t px-4 py-3 text-sm">
-            <span className="text-muted-foreground">
-              Página {transactions.data.page + 1} de {transactions.data.totalPages} ·{" "}
-              {transactions.data.totalItems} movimientos
-            </span>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => goToPage(transactions.data.page)}
-                disabled={transactions.data.page === 0}
-              >
-                <ChevronLeftIcon aria-hidden />
-                Anterior
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => goToPage(transactions.data.page + 2)}
-                disabled={transactions.data.page + 1 >= transactions.data.totalPages}
-              >
-                Siguiente
-                <ChevronRightIcon aria-hidden />
-              </Button>
-            </div>
-          </div>
-        </Card>
+        <>
+          <TransactionFiltersBar
+            params={params}
+            accounts={accountList.map((account) => ({ value: account.id, label: account.name }))}
+            categories={categoryOptions(categoryList).map((option) => ({
+              value: option.id,
+              label: option.label,
+            }))}
+            onChange={setFilter}
+            onClear={() => setParams({})}
+            hasFilters={hasFilters}
+          />
+
+          {transactions.isPending ? (
+            <Skeleton className="h-72 w-full" aria-label="Cargando movimientos" />
+          ) : transactions.isError ? (
+            <ErrorState
+              icon={ReceiptTextIcon}
+              title="No fue posible cargar tus movimientos"
+              description={transactions.error.message}
+              action={<Button onClick={() => transactions.refetch()}>Reintentar</Button>}
+            />
+          ) : transactions.data.totalItems === 0 ? (
+            <Card className="flex flex-col items-center gap-3 py-10 text-center">
+              <ReceiptTextIcon className="size-8 text-muted-foreground" aria-hidden />
+              <p className="text-sm text-muted-foreground">
+                {hasFilters
+                  ? "Ningún movimiento coincide con los filtros."
+                  : view === "clasificar"
+                    ? "Todos tus ingresos y gastos tienen categoría."
+                    : "Aún no has registrado movimientos."}
+              </p>
+              {!hasFilters && view === "todos" && (
+                <Button onClick={() => openForm()}>
+                  <PlusIcon aria-hidden />
+                  Registrar el primero
+                </Button>
+              )}
+            </Card>
+          ) : (
+            <Card className="py-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Detalle</TableHead>
+                    <TableHead>Categoría</TableHead>
+                    <TableHead>Producto</TableHead>
+                    <TableHead className="text-right">Monto</TableHead>
+                    <TableHead>
+                      <span className="sr-only">Acciones</span>
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactions.data.items.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell className="whitespace-nowrap">
+                        {formatDate(transaction.date)}
+                      </TableCell>
+                      <TableCell className="max-w-64">
+                        <TransactionDetail transaction={transaction} />
+                      </TableCell>
+                      <TableCell>
+                        {transaction.type === "INCOME" || transaction.type === "EXPENSE" ? (
+                          transaction.categoryId ? (
+                            categoryNames.get(transaction.categoryId)
+                          ) : (
+                            <span className="text-muted-foreground">Sin categoría</span>
+                          )
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <TransactionAccounts transaction={transaction} names={accountNames} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <TransactionAmount transaction={transaction} />
+                      </TableCell>
+                      <TableCell className="w-10">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label="Acciones del movimiento"
+                            >
+                              <MoreHorizontalIcon aria-hidden />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => openForm(transaction)}>
+                              <PencilIcon aria-hidden />
+                              Editar
+                            </DropdownMenuItem>
+                            {transaction.origin === "CAPTURE" &&
+                              transaction.type === "TRANSFER" && (
+                                <DropdownMenuItem
+                                  onSelect={() =>
+                                    markNotOwn.mutate(transaction.id, {
+                                      onSuccess: () => toast.success("Registrada como gasto."),
+                                      onError: (error) => toast.error(error.message),
+                                    })
+                                  }
+                                >
+                                  <ArrowUpRightIcon aria-hidden />
+                                  No es mía: es un gasto
+                                </DropdownMenuItem>
+                              )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onSelect={() => setDeleting(transaction)}
+                            >
+                              <Trash2Icon aria-hidden />
+                              Eliminar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <div className="flex items-center justify-between gap-2 border-t px-4 py-3 text-sm">
+                <span className="text-muted-foreground">
+                  Página {transactions.data.page + 1} de {transactions.data.totalPages} ·{" "}
+                  {transactions.data.totalItems} movimientos
+                </span>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(transactions.data.page)}
+                    disabled={transactions.data.page === 0}
+                  >
+                    <ChevronLeftIcon aria-hidden />
+                    Anterior
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => goToPage(transactions.data.page + 2)}
+                    disabled={transactions.data.page + 1 >= transactions.data.totalPages}
+                  >
+                    Siguiente
+                    <ChevronRightIcon aria-hidden />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+        </>
       )}
 
       {formOpen && (
@@ -317,11 +390,36 @@ function TransactionDetail({ transaction }: { transaction: Transaction }) {
       TRANSACTION_TYPE_LABELS[transaction.type],
   ].filter(Boolean)
 
+  const captured = transaction.origin === "CAPTURE"
+
+  // El título va solo en su línea para que no lo corten las marcas; las marcas acompañan los datos
+  // secundarios.
   return (
     <div className="min-w-0">
       <p className="truncate font-medium">{title}</p>
-      {extra.length > 0 && (
-        <p className="truncate text-xs text-muted-foreground">{extra.join(" · ")}</p>
+      {(extra.length > 0 || captured || transaction.amountEstimated) && (
+        <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+          {captured && (
+            <Badge
+              variant="outline"
+              className="shrink-0 gap-1"
+              title="Registrado desde una notificación"
+            >
+              <RadioTowerIcon aria-hidden />
+              Captado
+            </Badge>
+          )}
+          {transaction.amountEstimated && (
+            <Badge
+              variant="secondary"
+              className="shrink-0"
+              title="Convertido de dólares con la TRM; corrígelo con el valor del extracto"
+            >
+              Monto estimado
+            </Badge>
+          )}
+          {extra.length > 0 && <span className="truncate">{extra.join(" · ")}</span>}
+        </div>
       )}
     </div>
   )

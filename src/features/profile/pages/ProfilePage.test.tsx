@@ -1,6 +1,7 @@
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
+import { accountsWithWallet, ownKey, rappiWallet } from "@/test/capture-fixtures"
 import { jsonResponse, problem, requestWithMethod, stubApi } from "@/test/http-stubs"
 import { renderAt, testProfile } from "@/test/render"
 
@@ -11,7 +12,7 @@ describe("ProfilePage", () => {
       "PATCH /api/v1/me": (init) =>
         jsonResponse({ ...testProfile, ...JSON.parse(String(init?.body)) }),
     })
-    renderAt("/perfil")
+    renderAt("/ajustes/perfil")
 
     const name = await screen.findByLabelText("Nombre")
     await userEvent.clear(name)
@@ -28,7 +29,7 @@ describe("ProfilePage", () => {
 
   it("exige que la confirmación de la contraseña nueva coincida", async () => {
     stubApi({ "GET /api/v1/me": { body: testProfile } })
-    renderAt("/perfil")
+    renderAt("/ajustes/perfil")
 
     await userEvent.type(await screen.findByLabelText("Contraseña actual"), "contraseña-actual-1")
     await userEvent.type(screen.getByLabelText("Contraseña nueva"), "contraseña-nueva-22")
@@ -47,7 +48,7 @@ describe("ProfilePage", () => {
         "La contraseña actual no es correcta.",
       ),
     })
-    renderAt("/perfil")
+    renderAt("/ajustes/perfil")
 
     await userEvent.type(await screen.findByLabelText("Contraseña actual"), "no-es-la-actual")
     await userEvent.type(screen.getByLabelText("Contraseña nueva"), "contraseña-nueva-22")
@@ -56,5 +57,54 @@ describe("ProfilePage", () => {
 
     expect(await screen.findByText("La contraseña actual no es correcta.")).toBeInTheDocument()
     expect(screen.getByLabelText("Contraseña actual")).toHaveAttribute("aria-invalid", "true")
+  })
+
+  it("guarda nombres y apellidos para reconocer transferencias propias", async () => {
+    const fetchMock = stubApi({
+      "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/finance/accounts": { body: accountsWithWallet },
+      "GET /api/v1/capture/own-keys": { body: [] },
+      "PATCH /api/v1/me": (init) =>
+        jsonResponse({ ...testProfile, ...JSON.parse(String(init?.body)) }),
+    })
+    renderAt("/ajustes/perfil")
+
+    await userEvent.type(await screen.findByLabelText("Nombres"), "Ana María")
+    await userEvent.type(screen.getByLabelText("Apellidos"), "Pérez Gómez")
+    await userEvent.click(screen.getByRole("button", { name: "Guardar nombres" }))
+
+    expect(await screen.findByText("Nombres guardados.")).toBeInTheDocument()
+    expect(JSON.parse(String(requestWithMethod(fetchMock, "PATCH").body))).toEqual({
+      givenNames: "Ana María",
+      surnames: "Pérez Gómez",
+    })
+  })
+
+  it("registra una llave Bre-B y muestra en su campo que ya existe", async () => {
+    const fetchMock = stubApi({
+      "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/finance/accounts": { body: accountsWithWallet },
+      "GET /api/v1/capture/own-keys": { body: [ownKey] },
+      "POST /api/v1/capture/own-keys": problem(
+        409,
+        "capture.own_key.taken",
+        "Ya registraste esa llave.",
+      ),
+    })
+    renderAt("/ajustes/perfil")
+
+    expect(await screen.findByText("@rp1000000001")).toBeInTheDocument()
+    expect(screen.getByText("Llega a RappiCuenta")).toBeInTheDocument()
+
+    await userEvent.type(screen.getByLabelText("Llave"), "@RP1000000001")
+    await userEvent.selectOptions(screen.getByLabelText("Llega a"), rappiWallet.id)
+    await userEvent.click(screen.getByRole("button", { name: "Agregar llave" }))
+
+    expect(await screen.findByText("Ya registraste esa llave.")).toBeInTheDocument()
+    expect(screen.getByLabelText("Llave")).toHaveAttribute("aria-invalid", "true")
+    expect(JSON.parse(String(requestWithMethod(fetchMock, "POST").body))).toEqual({
+      key: "@RP1000000001",
+      productId: rappiWallet.id,
+    })
   })
 })
