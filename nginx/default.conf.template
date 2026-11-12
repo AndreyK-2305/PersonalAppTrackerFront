@@ -1,6 +1,21 @@
 # Plantilla procesada por la imagen de nginx al arrancar: ${BACKEND_URL} se reemplaza con la
 # variable de entorno. Las variables propias de nginx ($host, $uri...) no se tocan.
 
+# Detrás de Cloudflare Tunnel (perfil tunnel del backend), cloudflared llega desde la red de Docker:
+# la IP real del visitante viene en CF-Connecting-IP. Solo se acepta esa cabecera de las redes
+# privadas (cloudflared o el propio equipo); así el límite por IP de abajo aplica a cada visitante.
+set_real_ip_from 10.0.0.0/8;
+set_real_ip_from 172.16.0.0/12;
+set_real_ip_from 192.168.0.0/16;
+real_ip_header CF-Connecting-IP;
+
+# Esquema original de la petición: https si viene de un proxy que terminó TLS (cloudflared envía
+# X-Forwarded-Proto); si no, el de esta conexión. El backend lo usa para comparar el origen.
+map $http_x_forwarded_proto $forwarded_proto {
+    default $http_x_forwarded_proto;
+    "" $scheme;
+}
+
 # Límite por IP para inicio de sesión y registro (D16). Complementa el bloqueo por cuenta del
 # backend: frena los intentos repartidos entre muchas cuentas desde una misma dirección.
 limit_req_zone $binary_remote_addr zone=auth:10m rate=10r/m;

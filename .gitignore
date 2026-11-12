@@ -27,3 +27,6 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Publicación futura en Netlify (se conserva solo en local)
+netlify.toml
