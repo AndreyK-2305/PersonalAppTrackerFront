@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { PlusIcon, SmartphoneIcon } from "lucide-react"
+import { BookOpenIcon, PlusIcon, SmartphoneIcon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { ConfirmDialog } from "@/components/common/ConfirmDialog"
@@ -8,11 +8,24 @@ import { PageHeader } from "@/components/common/PageHeader"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCurrentProfile } from "@/features/auth/hooks/use-auth"
 import { formatDateTime } from "@/lib/format"
-import { deviceTokensQueryOptions, type DeviceScope, type DeviceToken } from "../api/device-tokens"
+import {
+  CAPTURE_ENDPOINT,
+  deviceTokensQueryOptions,
+  type DeviceScope,
+  type DeviceToken,
+} from "../api/device-tokens"
 import { CreateDeviceTokenDialog } from "../components/CreateDeviceTokenDialog"
+import { ShortcutGuide } from "../components/ShortcutGuide"
 import { useRevokeDeviceToken } from "../hooks/use-device-tokens"
 
 const SCOPE_LABELS: Record<DeviceScope, string> = {
@@ -31,6 +44,7 @@ export function ConnectionsPage() {
   // Cambia en cada apertura para que el diálogo empiece en el formulario, sin el secreto anterior.
   const [dialogKey, setDialogKey] = useState(0)
   const [revoking, setRevoking] = useState<DeviceToken | null>(null)
+  const [guideOpen, setGuideOpen] = useState(false)
 
   const openCreate = () => {
     setDialogKey((key) => key + 1)
@@ -53,10 +67,16 @@ export function ConnectionsPage() {
         title="Conexiones"
         description="Dispositivos que envían tus notificaciones bancarias para registrarlas solas."
         actions={
-          <Button onClick={openCreate}>
-            <PlusIcon aria-hidden />
-            Conectar dispositivo
-          </Button>
+          <>
+            <Button variant="outline" onClick={() => setGuideOpen(true)}>
+              <BookOpenIcon aria-hidden />
+              Guía del atajo
+            </Button>
+            <Button onClick={openCreate}>
+              <PlusIcon aria-hidden />
+              Conectar dispositivo
+            </Button>
+          </>
         }
       />
 
@@ -133,6 +153,18 @@ export function ConnectionsPage() {
       )}
 
       <CreateDeviceTokenDialog key={dialogKey} open={creating} onOpenChange={setCreating} />
+      <Dialog open={guideOpen} onOpenChange={setGuideOpen}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Guía del atajo</DialogTitle>
+            <DialogDescription>
+              Cómo configurar el atajo del iPhone que envía tus notificaciones bancarias. Usa el
+              token que creaste al conectar el dispositivo.
+            </DialogDescription>
+          </DialogHeader>
+          <ShortcutGuide endpoint={`${window.location.origin}${CAPTURE_ENDPOINT}`} />
+        </DialogContent>
+      </Dialog>
       <ConfirmDialog
         open={revoking !== null}
         onOpenChange={(open) => !open && setRevoking(null)}

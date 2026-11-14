@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
-import { CheckIcon, CopyIcon, LoaderCircleIcon } from "lucide-react"
+import { CheckIcon, ChevronDownIcon, CopyIcon, LoaderCircleIcon } from "lucide-react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { FormError } from "@/components/common/FormError"
@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label"
 import { CAPTURE_ENDPOINT } from "../api/device-tokens"
 import { useCreateDeviceToken } from "../hooks/use-device-tokens"
 import { deviceTokenSchema, type DeviceTokenValues } from "../schemas"
+import { ShortcutGuide } from "./ShortcutGuide"
 
 /**
  * Crea un token para el atajo del iPhone. El secreto solo se muestra aquí, una vez: al cerrar el
@@ -47,7 +48,7 @@ export function CreateDeviceTokenDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
         {secret ? (
           <SecretView secret={secret} onDone={() => onOpenChange(false)} />
         ) : (
@@ -79,6 +80,7 @@ export function CreateDeviceTokenDialog({
 
 function SecretView({ secret, onDone }: { secret: string; onDone: () => void }) {
   const [copied, setCopied] = useState(false)
+  const [showGuide, setShowGuide] = useState(false)
   const endpoint = `${window.location.origin}${CAPTURE_ENDPOINT}`
   const copy = async () => {
     try {
@@ -123,6 +125,27 @@ function SecretView({ secret, onDone }: { secret: string; onDone: () => void }) 
           <dd className="font-mono text-xs break-all">{endpoint}</dd>
         </div>
       </dl>
+      <div className="space-y-4">
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full justify-between"
+          aria-expanded={showGuide}
+          aria-controls="shortcut-guide"
+          onClick={() => setShowGuide((shown) => !shown)}
+        >
+          Ver paso a paso del atajo
+          <ChevronDownIcon
+            className={showGuide ? "rotate-180 transition-transform" : "transition-transform"}
+            aria-hidden
+          />
+        </Button>
+        {showGuide && (
+          <div id="shortcut-guide">
+            <ShortcutGuide endpoint={endpoint} />
+          </div>
+        )}
+      </div>
       <DialogFooter>
         <Button type="button" onClick={onDone}>
           Listo

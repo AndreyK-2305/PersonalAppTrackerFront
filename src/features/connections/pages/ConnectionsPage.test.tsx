@@ -32,8 +32,40 @@ describe("ConnectionsPage", () => {
       scopes: ["FINANCE_CAPTURE"],
     })
 
+    const toggle = within(secretDialog).getByRole("button", { name: "Ver paso a paso del atajo" })
+    expect(toggle).toHaveAttribute("aria-expanded", "false")
+    await userEvent.click(toggle)
+    expect(toggle).toHaveAttribute("aria-expanded", "true")
+    const guide = within(secretDialog).getByRole("region", { name: "Cómo configurar el atajo" })
+    expect(guide).toHaveTextContent("Obtener contenido de URL")
+    expect(guide).toHaveTextContent('app = "Mensajes"')
+    expect(guide).not.toHaveTextContent(SECRET)
+
     await userEvent.click(within(secretDialog).getByRole("button", { name: "Listo" }))
     expect(screen.queryByText(SECRET)).not.toBeInTheDocument()
+  })
+
+  it("muestra la guía del atajo y copia las instrucciones para Siri sin el token", async () => {
+    const user = userEvent.setup()
+    stubApi({
+      "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/me/device-tokens": { body: [deviceToken] },
+    })
+    renderAt("/ajustes/conexiones")
+
+    await user.click(await screen.findByRole("button", { name: "Guía del atajo" }))
+    const dialog = await screen.findByRole("dialog", { name: "Guía del atajo" })
+    expect(dialog).toHaveTextContent(
+      `${window.location.origin}/api/v1/device/capture/notifications`,
+    )
+
+    await user.click(within(dialog).getByRole("button", { name: "Copiar instrucciones para Siri" }))
+    expect(
+      await within(dialog).findByRole("button", { name: "Instrucciones copiadas" }),
+    ).toBeInTheDocument()
+    const copied = await navigator.clipboard.readText()
+    expect(copied).toContain("Authorization: Bearer <pega aquí tu token>")
+    expect(copied).toContain('app = "Wallet"')
   })
 
   it("desconecta un dispositivo tras confirmarlo", async () => {
