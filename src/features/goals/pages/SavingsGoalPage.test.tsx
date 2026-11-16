@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react"
+import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import { jsonResponse, noContent, requestWithMethod, stubApi } from "@/test/http-stubs"
@@ -12,6 +12,7 @@ describe("SavingsGoalPage", () => {
   it("muestra el avance, la proyección y los abonos", async () => {
     stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOAL}`]: { body: switchGoal },
     })
     renderAt("/metas/ahorro/goal-1")
@@ -27,6 +28,7 @@ describe("SavingsGoalPage", () => {
     const updated: SavingsGoal = { ...switchGoal, savedAmount: "350000.00" }
     const fetchMock = stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOAL}`]: { body: switchGoal },
       [`POST ${GOAL}/contributions`]: () => jsonResponse(updated, { status: 201 }),
     })
@@ -53,6 +55,7 @@ describe("SavingsGoalPage", () => {
     }
     const fetchMock = stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOAL}`]: { body: switchGoal },
       [`PUT ${GOAL}/rate`]: () => jsonResponse(withRate),
     })
@@ -74,6 +77,7 @@ describe("SavingsGoalPage", () => {
     const user = userEvent.setup()
     const fetchMock = stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOAL}`]: { body: switchGoal },
       [`DELETE ${GOAL}/contributions/c-1`]: () =>
         jsonResponse({ ...switchGoal, contributions: [], savedAmount: "0.00" }),
@@ -92,6 +96,7 @@ describe("SavingsGoalPage", () => {
     const user = userEvent.setup()
     stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOAL}`]: { body: switchGoal },
       [`DELETE ${GOAL}`]: noContent,
       "GET /api/v1/goals/savings": { body: [] },
@@ -104,6 +109,6 @@ describe("SavingsGoalPage", () => {
     await user.click(within(confirm).getByRole("button", { name: "Eliminar" }))
 
     expect(await screen.findByText("Meta eliminada.")).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe("/metas")
+    await waitFor(() => expect(router.state.location.pathname).toBe("/metas"))
   })
 })

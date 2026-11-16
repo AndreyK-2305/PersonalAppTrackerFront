@@ -11,6 +11,7 @@ describe("GoalsPage", () => {
   it("lista las metas con su avance y lo que hay que apartar", async () => {
     stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOALS}`]: { body: [switchGoal, bikeGoal] },
     })
     renderAt("/metas")
@@ -29,13 +30,14 @@ describe("GoalsPage", () => {
     const user = userEvent.setup()
     const fetchMock = stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOALS}`]: { body: [] },
       [`POST ${GOALS}`]: () => jsonResponse(switchGoal, { status: 201 }),
       [`GET ${GOALS}/goal-1`]: { body: switchGoal },
     })
     const router = renderAt("/metas")
 
-    await user.click(await screen.findByRole("button", { name: "Crear la primera" }))
+    await user.click(await screen.findByRole("button", { name: "Nueva meta de ahorro" }))
     const dialog = await screen.findByRole("dialog", { name: "Nueva meta de ahorro" })
     await user.type(within(dialog).getByLabelText("Nombre"), "Nintendo Switch")
     await user.type(within(dialog).getByLabelText("Valor objetivo"), "1.200.000")
@@ -56,13 +58,14 @@ describe("GoalsPage", () => {
     const user = userEvent.setup()
     const fetchMock = stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOALS}`]: { body: [] },
       [`POST ${GOALS}`]: () => jsonResponse(bikeGoal, { status: 201 }),
       [`GET ${GOALS}/goal-2`]: { body: bikeGoal },
     })
     renderAt("/metas")
 
-    await user.click(await screen.findByRole("button", { name: "Nueva meta" }))
+    await user.click(await screen.findByRole("button", { name: "Nueva meta de ahorro" }))
     const dialog = await screen.findByRole("dialog", { name: "Nueva meta de ahorro" })
     await user.type(within(dialog).getByLabelText("Nombre"), "Bicicleta")
     await user.type(within(dialog).getByLabelText("Valor objetivo"), "900.000")

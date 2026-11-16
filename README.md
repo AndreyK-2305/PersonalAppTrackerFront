@@ -64,7 +64,7 @@ Las convenciones de código están en [docs/conventions.md](docs/conventions.md)
 - **Rutas protegidas:** todas las demás. Sin sesión llevan al inicio de sesión y recuerdan la página pedida.
 - **Sesión expirada:** si expira mientras se usa la aplicación, cualquier respuesta 401 cierra la sesión en el cliente y lleva de nuevo al inicio de sesión.
 - **Primera cuenta:** el procedimiento para crearla está en el README del backend (ADR-0012).
-- **Metas:** `/metas` lista las metas de ahorro y `/metas/ahorro/:goalId` muestra una, con sus abonos y su rentabilidad. Los cálculos los hace el backend; aquí solo se formatean.
+- **Metas:** `/metas` tiene dos secciones, Ahorro y Financiadas. `/metas/ahorro/:goalId` muestra una meta de ahorro, con sus abonos y su rentabilidad; `/metas/financiada/:goalId`, una meta financiada, con el resumen del plan y la tabla de amortización. Los cálculos los hace el backend, incluida la vista previa del formulario; aquí solo se formatean.
 
 ## Tipos de la API
 

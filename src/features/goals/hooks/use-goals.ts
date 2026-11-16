@@ -2,10 +2,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   addContribution,
   adjustSavingsRate,
+  createFinancedGoal,
   createSavingsGoal,
+  deleteFinancedGoal,
   deleteSavingsGoal,
   goalKeys,
   removeContribution,
+  updateFinancedGoal,
   updateSavingsGoal,
 } from "../api/goals"
 
@@ -37,3 +40,15 @@ export function useDeleteSavingsGoal() {
 export const useAddContribution = () => useGoalsMutation(addContribution)
 export const useRemoveContribution = () => useGoalsMutation(removeContribution)
 export const useAdjustSavingsRate = () => useGoalsMutation(adjustSavingsRate)
+
+export const useCreateFinancedGoal = () => useGoalsMutation(createFinancedGoal)
+export const useUpdateFinancedGoal = () => useGoalsMutation(updateFinancedGoal)
+
+/** Borra una meta financiada. Solo invalida el listado, igual que {@link useDeleteSavingsGoal}. */
+export function useDeleteFinancedGoal() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: deleteFinancedGoal,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: goalKeys.financed(), exact: true }),
+  })
+}

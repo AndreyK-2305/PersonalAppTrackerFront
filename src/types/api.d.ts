@@ -52,6 +52,22 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/goals/financed/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["get_1"]
+    put: operations["update_1"]
+    post?: never
+    delete: operations["delete_1"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/v1/finance/transactions/{id}": {
     parameters: {
       query?: never
@@ -60,9 +76,9 @@ export interface paths {
       cookie?: never
     }
     get?: never
-    put: operations["update_1"]
+    put: operations["update_2"]
     post?: never
-    delete: operations["delete_1"]
+    delete: operations["delete_2"]
     options?: never
     head?: never
     patch?: never
@@ -76,9 +92,9 @@ export interface paths {
       cookie?: never
     }
     get?: never
-    put: operations["update_2"]
+    put: operations["update_3"]
     post?: never
-    delete: operations["delete_2"]
+    delete: operations["delete_3"]
     options?: never
     head?: never
     patch?: never
@@ -132,7 +148,7 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  "/api/v1/finance/transactions": {
+  "/api/v1/goals/financed": {
     parameters: {
       query?: never
       header?: never
@@ -140,6 +156,38 @@ export interface paths {
       cookie?: never
     }
     get: operations["list_2"]
+    put?: never
+    post: operations["create_2"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/goals/financed/simulations": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["simulate"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/transactions": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["list_3"]
     put?: never
     post: operations["record"]
     delete?: never
@@ -171,9 +219,9 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["list_3"]
+    get: operations["list_4"]
     put?: never
-    post: operations["create_2"]
+    post: operations["create_3"]
     delete?: never
     options?: never
     head?: never
@@ -219,9 +267,9 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["list_4"]
+    get: operations["list_5"]
     put?: never
-    post: operations["create_3"]
+    post: operations["create_4"]
     delete?: never
     options?: never
     head?: never
@@ -363,7 +411,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["list_5"]
+    get: operations["list_6"]
     put?: never
     post: operations["add"]
     delete?: never
@@ -411,13 +459,13 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["get_1"]
+    get: operations["get_2"]
     put?: never
     post?: never
     delete?: never
     options?: never
     head?: never
-    patch: operations["update_3"]
+    patch: operations["update_4"]
     trace?: never
   }
   "/api/v1/finance/categories/{id}": {
@@ -430,7 +478,7 @@ export interface paths {
     get?: never
     put?: never
     post?: never
-    delete: operations["delete_3"]
+    delete: operations["delete_4"]
     options?: never
     head?: never
     patch: operations["rename"]
@@ -443,7 +491,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["get_2"]
+    get: operations["get_3"]
     put?: never
     post?: never
     delete?: never
@@ -459,7 +507,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["list_6"]
+    get: operations["list_7"]
     put?: never
     post?: never
     delete?: never
@@ -599,6 +647,69 @@ export interface components {
     RateRequest: {
       /** @example 10.5 */
       ratePercent: string
+    }
+    FinancedGoalRequest: {
+      name: string
+      /** @example 60000000.00 */
+      assetValue: string
+      /** @example 10000000.00 */
+      downPayment?: string
+      /** @example 18.5 */
+      ratePercent: string
+      /** Format: int32 */
+      installments: number
+      /** Format: date */
+      firstDueDate: string
+      /** @example 1450000.00 */
+      actualInstallment?: string
+    }
+    FinancedGoalDetailResponse: {
+      goal: components["schemas"]["FinancedGoalResponse"]
+      schedule: components["schemas"]["InstallmentResponse"][]
+    }
+    FinancedGoalResponse: {
+      /** Format: uuid */
+      id: string
+      name: string
+      assetValue: string
+      downPayment: string
+      currency: string
+      ratePercent: string
+      /** Format: int32 */
+      installments: number
+      /** Format: date */
+      firstDueDate: string
+      actualInstallment?: string
+      summary: components["schemas"]["PlanSummaryResponse"]
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      updatedAt: string
+    }
+    InstallmentResponse: {
+      /** Format: int32 */
+      number: number
+      /** Format: date */
+      dueDate: string
+      payment: string
+      interest: string
+      principal: string
+      extras: string
+      balance: string
+    }
+    PlanSummaryResponse: {
+      financedAmount: string
+      recommendedInstallment: string
+      installmentAmount: string
+      extrasPerInstallment: string
+      totalInterest: string
+      totalExtras: string
+      totalPaid: string
+      totalCost: string
+      /** Format: date */
+      lastDueDate: string
+      /** Format: int32 */
+      scheduledInstallments: number
     }
     /**
      * @description Campos por tipo, además de amount, date y los opcionales description, merchant y channel:
@@ -742,6 +853,25 @@ export interface components {
       date: string
       /** @example 150000.00 */
       amount: string
+    }
+    TermsRequest: {
+      /** @example 60000000.00 */
+      assetValue: string
+      /** @example 10000000.00 */
+      downPayment?: string
+      /** @example 18.5 */
+      ratePercent: string
+      /** Format: int32 */
+      installments: number
+      /** Format: date */
+      firstDueDate: string
+      /** @example 1450000.00 */
+      actualInstallment?: string
+    }
+    SimulationResponse: {
+      currency: string
+      summary: components["schemas"]["PlanSummaryResponse"]
+      schedule: components["schemas"]["InstallmentResponse"][]
     }
     SetUpRequest: {
       withSuggestedCategories: boolean
@@ -1031,6 +1161,28 @@ export interface operations {
       }
     }
   }
+  get_1: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["FinancedGoalDetailResponse"]
+        }
+      }
+    }
+  }
   update_1: {
     parameters: {
       query?: never
@@ -1042,7 +1194,7 @@ export interface operations {
     }
     requestBody: {
       content: {
-        "application/json": components["schemas"]["TransactionRequest"]
+        "application/json": components["schemas"]["FinancedGoalRequest"]
       }
     }
     responses: {
@@ -1052,7 +1204,7 @@ export interface operations {
           [name: string]: unknown
         }
         content: {
-          "*/*": components["schemas"]["TransactionResponse"]
+          "*/*": components["schemas"]["FinancedGoalDetailResponse"]
         }
       }
     }
@@ -1088,6 +1240,52 @@ export interface operations {
     }
     requestBody: {
       content: {
+        "application/json": components["schemas"]["TransactionRequest"]
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["TransactionResponse"]
+        }
+      }
+    }
+  }
+  delete_2: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  update_3: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
         "application/json": components["schemas"]["AccountRequest"]
       }
     }
@@ -1103,7 +1301,7 @@ export interface operations {
       }
     }
   }
-  delete_2: {
+  delete_3: {
     parameters: {
       query?: never
       header?: never
@@ -1239,6 +1437,74 @@ export interface operations {
   }
   list_2: {
     parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["FinancedGoalResponse"][]
+        }
+      }
+    }
+  }
+  create_2: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["FinancedGoalRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["FinancedGoalDetailResponse"]
+        }
+      }
+    }
+  }
+  simulate: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TermsRequest"]
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["SimulationResponse"]
+        }
+      }
+    }
+  }
+  list_3: {
+    parameters: {
       query?: {
         from?: string
         to?: string
@@ -1336,7 +1602,7 @@ export interface operations {
       }
     }
   }
-  list_3: {
+  list_4: {
     parameters: {
       query?: never
       header?: never
@@ -1356,7 +1622,7 @@ export interface operations {
       }
     }
   }
-  create_2: {
+  create_3: {
     parameters: {
       query?: never
       header?: never
@@ -1420,7 +1686,7 @@ export interface operations {
       }
     }
   }
-  list_4: {
+  list_5: {
     parameters: {
       query?: never
       header?: never
@@ -1440,7 +1706,7 @@ export interface operations {
       }
     }
   }
-  create_3: {
+  create_4: {
     parameters: {
       query?: never
       header?: never
@@ -1638,7 +1904,7 @@ export interface operations {
       }
     }
   }
-  list_5: {
+  list_6: {
     parameters: {
       query?: never
       header?: never
@@ -1730,7 +1996,7 @@ export interface operations {
       }
     }
   }
-  get_1: {
+  get_2: {
     parameters: {
       query?: never
       header?: never
@@ -1750,7 +2016,7 @@ export interface operations {
       }
     }
   }
-  update_3: {
+  update_4: {
     parameters: {
       query?: never
       header?: never
@@ -1774,7 +2040,7 @@ export interface operations {
       }
     }
   }
-  delete_3: {
+  delete_4: {
     parameters: {
       query?: never
       header?: never
@@ -1818,7 +2084,7 @@ export interface operations {
       }
     }
   }
-  get_2: {
+  get_3: {
     parameters: {
       query?: {
         period?: "DAY" | "WEEK" | "MONTH"
@@ -1841,7 +2107,7 @@ export interface operations {
       }
     }
   }
-  list_6: {
+  list_7: {
     parameters: {
       query?: never
       header?: never

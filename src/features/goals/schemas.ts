@@ -1,6 +1,12 @@
 import { z } from "zod"
 import { compareDecimal, formatMoneyInput, parseMoneyInput } from "@/lib/money"
-import type { SavingsGoal, SavingsGoalRequest } from "./api/goals"
+import type {
+  FinancedGoal,
+  FinancedGoalRequest,
+  FinancingTerms,
+  SavingsGoal,
+  SavingsGoalRequest,
+} from "./api/goals"
 
 /**
  * Esquemas de los formularios de metas. Los montos se escriben en formato es-CO y las tasas, como
@@ -86,4 +92,117 @@ export function formatPercent(percent: string): string {
 function isPositiveMoney(text: string): boolean {
   const decimal = parseMoneyInput(text)
   return decimal !== null && compareDecimal(decimal, "0") > 0
+}
+
+// --- Metas financiadas ---
+
+const MONEY_MESSAGE = "Escribe un monto válido, por ejemplo 150.000."
+const PERCENT_MESSAGE = "Escribe un porcentaje con hasta 4 decimales, por ejemplo 18,5."
+export const MAX_INSTALLMENTS = 600
+
+export const financedGoalFormSchema = z
+  .object({
+    name: z.string().trim().min(1, "Escribe un nombre.").max(100, "Máximo 100 caracteres."),
+    assetValue: z.string(),
+    downPayment: z.string(),
+    ratePercent: z.string(),
+    installments: z.string(),
+    firstDueDate: z.string(),
+    actualInstallment: z.string(),
+  })
+  .superRefine((values, ctx) => {
+    for (const issue of termsIssues(values)) {
+      ctx.addIssue({ code: "custom", path: [issue.field], message: issue.message })
+    }
+  })
+
+export type FinancedGoalFormValues = z.infer<typeof financedGoalFormSchema>
+
+type TermsValues = Omit<FinancedGoalFormValues, "name">
+
+/** Reglas de las condiciones de la financiación; las mismas para enviar y para la vista previa. */
+function termsIssues(
+  values: Partial<TermsValues>,
+): { field: keyof TermsValues; message: string }[] {
+  const issues: { field: keyof TermsValues; message: string }[] = []
+  const assetValue = parseMoneyInput(values.assetValue ?? "")
+  if (assetValue === null || compareDecimal(assetValue, "0") <= 0) {
+    issues.push({ field: "assetValue", message: POSITIVE_MONEY_MESSAGE })
+  }
+  const downPaymentText = (values.downPayment ?? "").trim()
+  if (downPaymentText !== "") {
+    const downPayment = parseMoneyInput(downPaymentText)
+    if (downPayment === null) {
+      issues.push({ field: "downPayment", message: MONEY_MESSAGE })
+    } else if (assetValue !== null && compareDecimal(downPayment, assetValue) >= 0) {
+      issues.push({ field: "downPayment", message: "Debe ser menor que el valor del bien." })
+    }
+  }
+  const rate = (values.ratePercent ?? "").trim()
+  if (!PERCENT.test(rate)) {
+    issues.push({ field: "ratePercent", message: PERCENT_MESSAGE })
+  } else if (Number(rate.replace(",", ".")) > 1000) {
+    issues.push({ field: "ratePercent", message: "La tasa máxima es 1000 % EA." })
+  }
+  const installments = (values.installments ?? "").trim()
+  if (
+    !/^\d{1,3}$/.test(installments) ||
+    Number(installments) < 1 ||
+    Number(installments) > MAX_INSTALLMENTS
+  ) {
+    issues.push({
+      field: "installments",
+      message: `Escribe un número de cuotas entre 1 y ${MAX_INSTALLMENTS}.`,
+    })
+  }
+  if ((values.firstDueDate ?? "") === "") {
+    issues.push({ field: "firstDueDate", message: "Elige la fecha de la primera cuota." })
+  }
+  const actualText = (values.actualInstallment ?? "").trim()
+  if (actualText !== "" && !isPositiveMoney(actualText)) {
+    issues.push({ field: "actualInstallment", message: POSITIVE_MONEY_MESSAGE })
+  }
+  return issues
+}
+
+export function financedGoalFormDefaults(goal?: FinancedGoal): FinancedGoalFormValues {
+  return {
+    name: goal?.name ?? "",
+    assetValue: goal ? formatMoneyInput(goal.assetValue) : "",
+    downPayment:
+      goal && compareDecimal(goal.downPayment, "0") > 0 ? formatMoneyInput(goal.downPayment) : "",
+    ratePercent: goal ? formatPercent(goal.ratePercent) : "",
+    installments: goal ? String(goal.installments) : "",
+    firstDueDate: goal?.firstDueDate ?? "",
+    actualInstallment: goal?.actualInstallment ? formatMoneyInput(goal.actualInstallment) : "",
+  }
+}
+
+/**
+ * Condiciones listas para la API, o `null` si todavía no son válidas. Los campos opcionales vacíos
+ * no se envían.
+ */
+export function toFinancingTerms(values: Partial<TermsValues>): FinancingTerms | null {
+  if (termsIssues(values).length > 0) {
+    return null
+  }
+  const downPayment = parseMoneyInput(values.downPayment ?? "")
+  const actualInstallment = parseMoneyInput(values.actualInstallment ?? "")
+  return {
+    assetValue: parseMoneyInput(values.assetValue ?? "") ?? "",
+    ...(downPayment !== null && { downPayment }),
+    ratePercent: toRatePercent(values.ratePercent ?? ""),
+    installments: Number(values.installments),
+    firstDueDate: values.firstDueDate ?? "",
+    ...(actualInstallment !== null && { actualInstallment }),
+  }
+}
+
+/** Solo se llama con valores que ya pasaron el esquema. */
+export function toFinancedGoalRequest(values: FinancedGoalFormValues): FinancedGoalRequest {
+  const terms = toFinancingTerms(values)
+  if (terms === null) {
+    throw new Error("Las condiciones de la financiación no son válidas")
+  }
+  return { name: values.name, ...terms }
 }

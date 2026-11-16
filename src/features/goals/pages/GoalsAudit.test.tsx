@@ -30,6 +30,7 @@ describe("Metas: estados y errores", () => {
     }
     stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOALS}`]: { body: [overdue, unreachable] },
     })
     renderAt("/metas")
@@ -46,6 +47,7 @@ describe("Metas: estados y errores", () => {
     const user = userEvent.setup()
     stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOALS}`]: { body: [] },
       [`POST ${GOALS}`]: problem(
         422,
@@ -55,7 +57,7 @@ describe("Metas: estados y errores", () => {
     })
     renderAt("/metas")
 
-    await user.click(await screen.findByRole("button", { name: "Nueva meta" }))
+    await user.click(await screen.findByRole("button", { name: "Nueva meta de ahorro" }))
     const dialog = await screen.findByRole("dialog", { name: "Nueva meta de ahorro" })
     await user.type(within(dialog).getByLabelText("Nombre"), "Consola")
     await user.type(within(dialog).getByLabelText("Valor objetivo"), "1.000")
@@ -75,11 +77,12 @@ describe("Metas: estados y errores", () => {
     const user = userEvent.setup()
     const fetchMock = stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOALS}`]: { body: [] },
     })
     renderAt("/metas")
 
-    await user.click(await screen.findByRole("button", { name: "Nueva meta" }))
+    await user.click(await screen.findByRole("button", { name: "Nueva meta de ahorro" }))
     const dialog = await screen.findByRole("dialog", { name: "Nueva meta de ahorro" })
     await user.type(within(dialog).getByLabelText("Valor objetivo"), "1.5")
     await user.click(within(dialog).getByRole("button", { name: "Crear meta" }))
@@ -94,6 +97,7 @@ describe("Metas: estados y errores", () => {
     const user = userEvent.setup()
     const fetchMock = stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOAL}`]: { body: switchGoal },
       [`PUT ${GOAL}`]: () => jsonResponse({ ...switchGoal, name: "Switch 2" }),
     })
@@ -121,6 +125,7 @@ describe("Metas: estados y errores", () => {
     const user = userEvent.setup()
     const fetchMock = stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOAL}`]: { body: switchGoal },
     })
     renderAt("/metas/ahorro/goal-1")
@@ -142,6 +147,7 @@ describe("Metas: estados y errores", () => {
   it("muestra la meta que no existe como error con opción de volver", async () => {
     stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOAL}`]: problem(404, "goals.savings_goal.not_found", "La meta no existe."),
     })
     renderAt("/metas/ahorro/goal-1")
@@ -167,6 +173,7 @@ describe("Metas: estados y errores", () => {
     observer.observe(document.body, { childList: true, subtree: true, characterData: true })
     stubApi({
       "GET /api/v1/me": { body: testProfile },
+      "GET /api/v1/goals/financed": { body: [] },
       [`GET ${GOAL}`]: () =>
         deleted
           ? jsonResponse(

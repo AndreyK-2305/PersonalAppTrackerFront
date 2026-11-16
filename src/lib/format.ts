@@ -26,6 +26,26 @@ export function formatMoney(amount: string, currency: string = DEFAULT_CURRENCY)
   return currencyFormatter(currency).format(amount as Intl.StringNumericLiteral)
 }
 
+const exactCurrencyFormatters = new Map<string, Intl.NumberFormat>()
+
+/**
+ * "833305.82" → "$ 833.305,82". Con centavos, para tablas de cálculo donde las filas deben sumar
+ * exacto (por ejemplo, una tabla de amortización).
+ */
+export function formatMoneyExact(amount: string, currency: string = DEFAULT_CURRENCY): string {
+  let formatter = exactCurrencyFormatters.get(currency)
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(LOCALE, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+    exactCurrencyFormatters.set(currency, formatter)
+  }
+  return formatter.format(amount as Intl.StringNumericLiteral)
+}
+
 const dateFormatter = new Intl.DateTimeFormat(LOCALE, {
   day: "numeric",
   month: "short",

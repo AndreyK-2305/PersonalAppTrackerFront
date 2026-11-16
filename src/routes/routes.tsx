@@ -109,6 +109,13 @@ export const routes: RouteObject[] = [
                       (m) => m.SavingsGoalPage,
                     ),
                   },
+                  {
+                    path: "financiada/:goalId",
+                    lazy: page(
+                      () => import("@/features/goals/pages/FinancedGoalPage"),
+                      (m) => m.FinancedGoalPage,
+                    ),
+                  },
                 ],
               },
               {
