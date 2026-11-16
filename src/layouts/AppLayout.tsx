@@ -13,7 +13,8 @@ export function AppLayout() {
   return (
     <SidebarProvider defaultOpen={sidebarWasOpen()}>
       <AppSidebar />
-      <SidebarInset>
+      {/* min-w-0: sin esto, una tabla ancha estira el contenido y la página entera se desplaza a lo ancho. */}
+      <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-4 backdrop-blur">
           <SidebarTrigger className="-ml-1" aria-label="Mostrar u ocultar la navegación" />
           <Separator
