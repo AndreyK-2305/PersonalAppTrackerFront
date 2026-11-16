@@ -2,6 +2,7 @@ import {
   ActivityIcon,
   ChartColumnIcon,
   FolderTreeIcon,
+  PiggyBankIcon,
   PlugIcon,
   ReceiptTextIcon,
   UserRoundIcon,
@@ -34,7 +35,7 @@ interface NavItem {
   end?: boolean
 }
 
-// Un grupo por herramienta (Finanzas; más adelante Garaje, Metas…) y Ajustes al final (D9). Solo
+// Un grupo por herramienta (Finanzas, Metas; más adelante Garaje…) y Ajustes al final (D9). Solo
 // rutas que existen: cada herramienta agrega aquí su grupo cuando se implementa.
 const navigation: { label: string; items: NavItem[] }[] = [
   {
@@ -45,6 +46,10 @@ const navigation: { label: string; items: NavItem[] }[] = [
       { label: "Productos", to: "/finanzas/productos", icon: WalletCardsIcon },
       { label: "Categorías", to: "/finanzas/categorias", icon: FolderTreeIcon },
     ],
+  },
+  {
+    label: "Metas",
+    items: [{ label: "Mis metas", to: "/metas", icon: PiggyBankIcon }],
   },
   {
     label: "Ajustes",

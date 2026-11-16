@@ -46,6 +46,7 @@ src/
 │   ├── ui/         componentes de shadcn/ui (generados con su CLI)
 │   └── common/     componentes propios reutilizables (PageHeader, ErrorState, FormTextField…)
 ├── features/       una carpeta por funcionalidad: api/, components/, hooks/, schemas/, pages/
+│                   (auth, profile, finance, capture, connections, goals, system-status)
 ├── hooks/          hooks genéricos
 ├── layouts/        AppLayout (navegación lateral y menú de usuario) y AuthLayout
 ├── lib/            cliente HTTP, formato de montos y fechas, utilidades
@@ -63,6 +64,7 @@ Las convenciones de código están en [docs/conventions.md](docs/conventions.md)
 - **Rutas protegidas:** todas las demás. Sin sesión llevan al inicio de sesión y recuerdan la página pedida.
 - **Sesión expirada:** si expira mientras se usa la aplicación, cualquier respuesta 401 cierra la sesión en el cliente y lleva de nuevo al inicio de sesión.
 - **Primera cuenta:** el procedimiento para crearla está en el README del backend (ADR-0012).
+- **Metas:** `/metas` lista las metas de ahorro y `/metas/ahorro/:goalId` muestra una, con sus abonos y su rentabilidad. Los cálculos los hace el backend; aquí solo se formatean.
 
 ## Tipos de la API
 

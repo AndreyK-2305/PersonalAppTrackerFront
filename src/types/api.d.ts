@@ -20,6 +20,38 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/goals/savings/{id}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["get"]
+    put: operations["update"]
+    post?: never
+    delete: operations["delete"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/goals/savings/{id}/rate": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put: operations["adjustRate"]
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/v1/finance/transactions/{id}": {
     parameters: {
       query?: never
@@ -28,9 +60,9 @@ export interface paths {
       cookie?: never
     }
     get?: never
-    put: operations["update"]
+    put: operations["update_1"]
     post?: never
-    delete: operations["delete"]
+    delete: operations["delete_1"]
     options?: never
     head?: never
     patch?: never
@@ -44,9 +76,9 @@ export interface paths {
       cookie?: never
     }
     get?: never
-    put: operations["update_1"]
+    put: operations["update_2"]
     post?: never
-    delete: operations["delete_1"]
+    delete: operations["delete_2"]
     options?: never
     head?: never
     patch?: never
@@ -68,7 +100,7 @@ export interface paths {
     patch?: never
     trace?: never
   }
-  "/api/v1/finance/transactions": {
+  "/api/v1/goals/savings": {
     parameters: {
       query?: never
       header?: never
@@ -76,6 +108,38 @@ export interface paths {
       cookie?: never
     }
     get: operations["list_1"]
+    put?: never
+    post: operations["create_1"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/goals/savings/{id}/contributions": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["addContribution"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/finance/transactions": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations["list_2"]
     put?: never
     post: operations["record"]
     delete?: never
@@ -107,9 +171,9 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["list_2"]
+    get: operations["list_3"]
     put?: never
-    post: operations["create_1"]
+    post: operations["create_2"]
     delete?: never
     options?: never
     head?: never
@@ -155,9 +219,9 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["list_3"]
+    get: operations["list_4"]
     put?: never
-    post: operations["create_2"]
+    post: operations["create_3"]
     delete?: never
     options?: never
     head?: never
@@ -299,7 +363,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["list_4"]
+    get: operations["list_5"]
     put?: never
     post: operations["add"]
     delete?: never
@@ -347,13 +411,13 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["get"]
+    get: operations["get_1"]
     put?: never
     post?: never
     delete?: never
     options?: never
     head?: never
-    patch: operations["update_2"]
+    patch: operations["update_3"]
     trace?: never
   }
   "/api/v1/finance/categories/{id}": {
@@ -366,7 +430,7 @@ export interface paths {
     get?: never
     put?: never
     post?: never
-    delete: operations["delete_2"]
+    delete: operations["delete_3"]
     options?: never
     head?: never
     patch: operations["rename"]
@@ -379,7 +443,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["get_1"]
+    get: operations["get_2"]
     put?: never
     post?: never
     delete?: never
@@ -395,7 +459,7 @@ export interface paths {
       path?: never
       cookie?: never
     }
-    get: operations["list_5"]
+    get: operations["list_6"]
     put?: never
     post?: never
     delete?: never
@@ -436,6 +500,22 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/goals/savings/{id}/contributions/{contributionId}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete: operations["removeContribution"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/v1/capture/own-keys/{id}": {
     parameters: {
       query?: never
@@ -459,6 +539,66 @@ export interface components {
     ChangePasswordRequest: {
       currentPassword: string
       newPassword: string
+    }
+    SavingsGoalRequest: {
+      name: string
+      /** @example 2500000.00 */
+      targetAmount: string
+      /** @enum {string} */
+      plan: "TARGET_DATE" | "MONTHLY_AMOUNT"
+      /** Format: date */
+      targetDate?: string
+      /** @example 200000.00 */
+      monthlyAmount?: string
+    }
+    ContributionResponse: {
+      /** Format: uuid */
+      id: string
+      /** Format: date */
+      date: string
+      amount: string
+      /** Format: date-time */
+      createdAt: string
+    }
+    RateChangeResponse: {
+      /** Format: date */
+      effectiveFrom: string
+      ratePercent: string
+    }
+    SavingsGoalResponse: {
+      /** Format: uuid */
+      id: string
+      name: string
+      targetAmount: string
+      currency: string
+      /** @enum {string} */
+      plan: "TARGET_DATE" | "MONTHLY_AMOUNT"
+      /** Format: date */
+      targetDate?: string
+      monthlyAmount?: string
+      savedAmount: string
+      remainingAmount: string
+      progressPercent: string
+      completed: boolean
+      overdue: boolean
+      /** Format: int32 */
+      monthsRemaining?: number
+      recommendedMonthlyAmount?: string
+      /** Format: date */
+      estimatedDate?: string
+      reachable: boolean
+      /** @description Tasa EA de la proyección en porcentaje; ausente si la rentabilidad está apagada */
+      ratePercent?: string
+      contributions: components["schemas"]["ContributionResponse"][]
+      rateChanges: components["schemas"]["RateChangeResponse"][]
+      /** Format: date-time */
+      createdAt: string
+      /** Format: date-time */
+      updatedAt: string
+    }
+    RateRequest: {
+      /** @example 10.5 */
+      ratePercent: string
     }
     /**
      * @description Campos por tipo, además de amount, date y los opcionales description, merchant y channel:
@@ -596,6 +736,12 @@ export interface components {
       lastUsedAt?: string
       /** Format: date-time */
       revokedAt?: string
+    }
+    ContributionRequest: {
+      /** Format: date */
+      date: string
+      /** @example 150000.00 */
+      amount: string
     }
     SetUpRequest: {
       withSuggestedCategories: boolean
@@ -791,7 +937,101 @@ export interface operations {
       }
     }
   }
+  get: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["SavingsGoalResponse"]
+        }
+      }
+    }
+  }
   update: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SavingsGoalRequest"]
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["SavingsGoalResponse"]
+        }
+      }
+    }
+  }
+  delete: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No Content */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  adjustRate: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RateRequest"]
+      }
+    }
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["SavingsGoalResponse"]
+        }
+      }
+    }
+  }
+  update_1: {
     parameters: {
       query?: never
       header?: never
@@ -817,7 +1057,7 @@ export interface operations {
       }
     }
   }
-  delete: {
+  delete_1: {
     parameters: {
       query?: never
       header?: never
@@ -837,7 +1077,7 @@ export interface operations {
       }
     }
   }
-  update_1: {
+  update_2: {
     parameters: {
       query?: never
       header?: never
@@ -863,7 +1103,7 @@ export interface operations {
       }
     }
   }
-  delete_1: {
+  delete_2: {
     parameters: {
       query?: never
       header?: never
@@ -928,6 +1168,76 @@ export interface operations {
     }
   }
   list_1: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["SavingsGoalResponse"][]
+        }
+      }
+    }
+  }
+  create_1: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SavingsGoalRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["SavingsGoalResponse"]
+        }
+      }
+    }
+  }
+  addContribution: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ContributionRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["SavingsGoalResponse"]
+        }
+      }
+    }
+  }
+  list_2: {
     parameters: {
       query?: {
         from?: string
@@ -1026,7 +1336,7 @@ export interface operations {
       }
     }
   }
-  list_2: {
+  list_3: {
     parameters: {
       query?: never
       header?: never
@@ -1046,7 +1356,7 @@ export interface operations {
       }
     }
   }
-  create_1: {
+  create_2: {
     parameters: {
       query?: never
       header?: never
@@ -1110,7 +1420,7 @@ export interface operations {
       }
     }
   }
-  list_3: {
+  list_4: {
     parameters: {
       query?: never
       header?: never
@@ -1130,7 +1440,7 @@ export interface operations {
       }
     }
   }
-  create_2: {
+  create_3: {
     parameters: {
       query?: never
       header?: never
@@ -1328,7 +1638,7 @@ export interface operations {
       }
     }
   }
-  list_4: {
+  list_5: {
     parameters: {
       query?: never
       header?: never
@@ -1420,7 +1730,7 @@ export interface operations {
       }
     }
   }
-  get: {
+  get_1: {
     parameters: {
       query?: never
       header?: never
@@ -1440,7 +1750,7 @@ export interface operations {
       }
     }
   }
-  update_2: {
+  update_3: {
     parameters: {
       query?: never
       header?: never
@@ -1464,7 +1774,7 @@ export interface operations {
       }
     }
   }
-  delete_2: {
+  delete_3: {
     parameters: {
       query?: never
       header?: never
@@ -1508,7 +1818,7 @@ export interface operations {
       }
     }
   }
-  get_1: {
+  get_2: {
     parameters: {
       query?: {
         period?: "DAY" | "WEEK" | "MONTH"
@@ -1531,7 +1841,7 @@ export interface operations {
       }
     }
   }
-  list_5: {
+  list_6: {
     parameters: {
       query?: never
       header?: never
@@ -1588,6 +1898,29 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+    }
+  }
+  removeContribution: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+        contributionId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["SavingsGoalResponse"]
+        }
       }
     }
   }

@@ -93,6 +93,25 @@ export const routes: RouteObject[] = [
                 ],
               },
               {
+                path: "metas",
+                children: [
+                  {
+                    index: true,
+                    lazy: page(
+                      () => import("@/features/goals/pages/GoalsPage"),
+                      (m) => m.GoalsPage,
+                    ),
+                  },
+                  {
+                    path: "ahorro/:goalId",
+                    lazy: page(
+                      () => import("@/features/goals/pages/SavingsGoalPage"),
+                      (m) => m.SavingsGoalPage,
+                    ),
+                  },
+                ],
+              },
+              {
                 path: "ajustes",
                 children: [
                   { index: true, element: <Navigate to="/ajustes/perfil" replace /> },
