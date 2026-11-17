@@ -1,13 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import {
   addContribution,
+  adjustCreditRate,
   adjustSavingsRate,
   createFinancedGoal,
   createSavingsGoal,
   deleteFinancedGoal,
   deleteSavingsGoal,
   goalKeys,
+  payInstallment,
+  payThroughInstallment,
+  prepayCredit,
   removeContribution,
+  undoCreditRecord,
   updateFinancedGoal,
   updateSavingsGoal,
 } from "../api/goals"
@@ -52,3 +57,9 @@ export function useDeleteFinancedGoal() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: goalKeys.financed(), exact: true }),
   })
 }
+
+export const usePayInstallment = () => useGoalsMutation(payInstallment)
+export const usePayThroughInstallment = () => useGoalsMutation(payThroughInstallment)
+export const usePrepayCredit = () => useGoalsMutation(prepayCredit)
+export const useAdjustCreditRate = () => useGoalsMutation(adjustCreditRate)
+export const useUndoCreditRecord = () => useGoalsMutation(undoCreditRecord)

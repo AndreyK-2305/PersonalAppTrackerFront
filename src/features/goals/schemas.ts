@@ -206,3 +206,49 @@ export function toFinancedGoalRequest(values: FinancedGoalFormValues): FinancedG
   }
   return { name: values.name, ...terms }
 }
+
+// --- Pagos, abonos y ajustes de tasa ---
+
+export const PREPAYMENT_MODES = ["REDUCE_TERM", "REDUCE_INSTALLMENT"] as const
+
+export const PREPAYMENT_MODE_LABELS: Record<(typeof PREPAYMENT_MODES)[number], string> = {
+  REDUCE_TERM: "Reducir el plazo (misma cuota, menos cuotas)",
+  REDUCE_INSTALLMENT: "Reducir la cuota (mismas cuotas, menor valor)",
+}
+
+/** Pago de una cuota o abono a capital: una fecha, un valor y cómo aplicar lo que sea abono. */
+export const creditPaymentFormSchema = z.object({
+  date: z.string().min(1, "Elige la fecha."),
+  amount: z.string().refine(isPositiveMoney, POSITIVE_MONEY_MESSAGE),
+  mode: z.enum(PREPAYMENT_MODES),
+})
+
+export type CreditPaymentFormValues = z.infer<typeof creditPaymentFormSchema>
+
+export function payThroughFormSchema(firstPending: number, lastPending: number) {
+  return z.object({
+    installmentNumber: z
+      .string()
+      .trim()
+      .regex(/^\d{1,3}$/, "Escribe el número de una cuota.")
+      .refine(
+        (text) => Number(text) >= firstPending && Number(text) <= lastPending,
+        `Elige una cuota pendiente, entre la ${firstPending} y la ${lastPending}.`,
+      ),
+  })
+}
+
+export type PayThroughFormValues = { installmentNumber: string }
+
+export const rateAdjustmentFormSchema = z.object({
+  ratePercent: z
+    .string()
+    .trim()
+    .regex(PERCENT, PERCENT_MESSAGE)
+    .refine((text) => Number(text.replace(",", ".")) <= 1000, "La tasa máxima es 1000 % EA."),
+  actualInstallment: z
+    .string()
+    .refine((text) => text.trim() === "" || isPositiveMoney(text), POSITIVE_MONEY_MESSAGE),
+})
+
+export type RateAdjustmentFormValues = z.infer<typeof rateAdjustmentFormSchema>

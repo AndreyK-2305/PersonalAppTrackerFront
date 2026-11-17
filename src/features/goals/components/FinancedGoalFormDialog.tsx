@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { LoaderCircleIcon } from "lucide-react"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, type Control } from "react-hook-form"
 import { toast } from "sonner"
 import { FormError } from "@/components/common/FormError"
 import { FormTextField } from "@/components/common/FormTextField"
@@ -40,6 +40,7 @@ const FIELDS = [
 /** Campo del formulario al que corresponde cada regla del backend (ADR-0018). */
 const FIELD_BY_CODE = {
   "goals.financed_goal.name_invalid": "name",
+  "goals.financed_goal.terms_locked": "name",
   "goals.financed_goal.asset_value_invalid": "assetValue",
   "goals.financed_goal.down_payment_invalid": "downPayment",
   "goals.financed_goal.installments_invalid": "installments",
@@ -102,6 +103,8 @@ function FinancedGoalForm({
     defaultValues: financedGoalFormDefaults(goal),
   })
   const pending = createGoal.isPending || updateGoal.isPending
+  // Con pagos, abonos o ajustes registrados, las condiciones ya no se pueden cambiar (ADR-0018).
+  const termsLocked = goal?.progress.hasRecords ?? false
 
   const onSubmit = form.handleSubmit((values) => {
     setGeneralError(null)
@@ -134,40 +137,15 @@ function FinancedGoalForm({
           label="Nombre"
           placeholder="Por ejemplo, Carro"
         />
-        <div className="grid gap-4 sm:grid-cols-2">
-          <MoneyField control={form.control} name="assetValue" label="Valor del bien" />
-          <MoneyField control={form.control} name="downPayment" label="Cuota inicial (opcional)" />
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormTextField
-            control={form.control}
-            name="ratePercent"
-            label="Tasa EA (%)"
-            placeholder="Por ejemplo, 18,5"
-          />
-          <FormTextField
-            control={form.control}
-            name="installments"
-            label="Número de cuotas"
-            inputMode="numeric"
-            placeholder="48"
-          />
-        </div>
-        <FormTextField
-          control={form.control}
-          name="firstDueDate"
-          label="Fecha de la primera cuota"
-          type="date"
-          description="Puede ser pasada, si el crédito ya empezó."
-        />
-        <MoneyField
-          control={form.control}
-          name="actualInstallment"
-          label="Cuota real (opcional)"
-          description="Lo que te cobra la entidad. La diferencia con la cuota calculada se muestra como seguros y otros."
-        />
+        {termsLocked && (
+          <p className="rounded-lg border bg-muted/40 p-3 text-sm text-muted-foreground">
+            Esta meta ya tiene pagos, abonos o ajustes registrados, así que solo puedes cambiar el
+            nombre. Para cambiar la tasa usa "Ajustar tasa"; para lo demás, deshaz primero los
+            registros.
+          </p>
+        )}
       </FieldGroup>
-      <FinancingPreview control={form.control} />
+      {!termsLocked && <TermsFields control={form.control} />}
       <DialogFooter>
         <Button type="button" variant="outline" onClick={() => onDone()} disabled={pending}>
           Cancelar
@@ -178,5 +156,48 @@ function FinancedGoalForm({
         </Button>
       </DialogFooter>
     </form>
+  )
+}
+
+/** Condiciones de la financiación con su vista previa. */
+function TermsFields({ control }: { control: Control<FinancedGoalFormValues> }) {
+  return (
+    <>
+      <FieldGroup>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <MoneyField control={control} name="assetValue" label="Valor del bien" />
+          <MoneyField control={control} name="downPayment" label="Cuota inicial (opcional)" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormTextField
+            control={control}
+            name="ratePercent"
+            label="Tasa EA (%)"
+            placeholder="Por ejemplo, 18,5"
+          />
+          <FormTextField
+            control={control}
+            name="installments"
+            label="Número de cuotas"
+            inputMode="numeric"
+            placeholder="48"
+          />
+        </div>
+        <FormTextField
+          control={control}
+          name="firstDueDate"
+          label="Fecha de la primera cuota"
+          type="date"
+          description="Puede ser pasada, si el crédito ya empezó."
+        />
+        <MoneyField
+          control={control}
+          name="actualInstallment"
+          label="Cuota real (opcional)"
+          description="Lo que te cobra la entidad. La diferencia con la cuota calculada se muestra como seguros y otros."
+        />
+      </FieldGroup>
+      <FinancingPreview control={control} />
+    </>
   )
 }

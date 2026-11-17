@@ -36,8 +36,9 @@ describe("Metas financiadas", () => {
 
     const section = await screen.findByRole("region", { name: "Financiadas" })
     const card = await within(section).findByRole("article", { name: "Carro" })
-    expect(card).toHaveTextContent(/\$\s?1\.720\.956 al mes durante 48 cuotas/)
-    expect(card).toHaveTextContent(/pagas \$\s?22\.605\.857 de intereses/)
+    expect(card).toHaveTextContent(/\$\s?1\.720\.956 al mes · 0 de 48 cuotas pagadas/)
+    expect(card).toHaveTextContent(/Intereses del plan: \$\s?22\.605\.857/)
+    expect(card).toHaveTextContent("Al día")
     expect(within(card).getByRole("link", { name: "Carro" })).toHaveAttribute(
       "href",
       "/metas/financiada/fin-1",
@@ -241,6 +242,7 @@ describe("Metas financiadas", () => {
         },
       },
       schedule: carDetail.schedule.map((row) => ({ ...row, extras: "40000.00" })),
+      records: [],
     }
     stubApi({
       "GET /api/v1/me": { body: testProfile },

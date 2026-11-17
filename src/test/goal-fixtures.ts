@@ -45,7 +45,7 @@ export const bikeGoal: SavingsGoal = {
   completed: true,
 }
 
-/** $60.000.000 al 18 % EA en 48 cuotas: el ejemplo del ADR-0018. */
+/** $60.000.000 al 18 % EA en 48 cuotas: el ejemplo del ADR-0018, recién creado y sin registros. */
 export const carGoal: FinancedGoal = {
   id: "fin-1",
   name: "Carro",
@@ -67,6 +67,30 @@ export const carGoal: FinancedGoal = {
     lastDueDate: "2031-01-15",
     scheduledInstallments: 48,
   },
+  progress: {
+    status: "ON_TRACK",
+    paidInstallments: 0,
+    pendingInstallments: 48,
+    balance: "60000000.00",
+    currentRatePercent: "18",
+    paidInterest: "0.00",
+    pendingInterest: "22605857.34",
+    originalTotalInterest: "22605857.34",
+    interestSavings: "0.00",
+    paidSoFar: "0.00",
+    nextInstallment: {
+      number: 1,
+      dueDate: "2027-02-15",
+      payment: "1720956.00",
+      interest: "833305.82",
+      principal: "887650.18",
+      extras: "0.00",
+      extraPrincipal: "0.00",
+      balance: "59112349.82",
+      paid: false,
+    },
+    hasRecords: false,
+  },
   createdAt: "2026-11-16T15:00:00Z",
   updatedAt: "2026-11-16T15:00:00Z",
 }
@@ -75,15 +99,7 @@ export const carGoal: FinancedGoal = {
 export const carDetail: FinancedGoalDetail = {
   goal: carGoal,
   schedule: [
-    {
-      number: 1,
-      dueDate: "2027-02-15",
-      payment: "1720956.00",
-      interest: "833305.82",
-      principal: "887650.18",
-      extras: "0.00",
-      balance: "59112349.82",
-    },
+    carGoal.progress.nextInstallment!,
     {
       number: 2,
       dueDate: "2027-03-15",
@@ -91,7 +107,9 @@ export const carDetail: FinancedGoalDetail = {
       interest: "820977.75",
       principal: "899978.25",
       extras: "0.00",
+      extraPrincipal: "0.00",
       balance: "58212371.57",
+      paid: false,
     },
     {
       number: 48,
@@ -100,13 +118,114 @@ export const carDetail: FinancedGoalDetail = {
       interest: "23573.55",
       principal: "1697351.79",
       extras: "0.00",
+      extraPrincipal: "0.00",
       balance: "0.00",
+      paid: false,
     },
   ],
+  records: [],
 }
 
 export const carSimulation: FinancingSimulation = {
   currency: "COP",
   summary: carGoal.summary,
   schedule: carDetail.schedule,
+}
+
+/**
+ * El mismo crédito con 12 cuotas pagadas y un abono de $5.000.000 que reduce el plazo: quedan 32
+ * cuotas y se ahorran $3.006.724,63 de intereses. La tabla trae la cuota 12 (pagada), la 13 (la
+ * siguiente) y la 44 (la última).
+ */
+export const carInProgress: FinancedGoalDetail = {
+  goal: {
+    ...carGoal,
+    summary: {
+      ...carGoal.summary,
+      totalInterest: "19599132.71",
+      totalPaid: "79599132.71",
+      totalCost: "79599132.71",
+      lastDueDate: "2030-09-15",
+      scheduledInstallments: 44,
+    },
+    progress: {
+      status: "ON_TRACK",
+      paidInstallments: 12,
+      pendingInstallments: 32,
+      balance: "43495673.87",
+      currentRatePercent: "18",
+      paidInterest: "9147145.87",
+      pendingInterest: "10451986.84",
+      originalTotalInterest: "22605857.34",
+      interestSavings: "3006724.63",
+      paidSoFar: "25651472.00",
+      nextInstallment: {
+        number: 13,
+        dueDate: "2028-02-15",
+        payment: "1720956.00",
+        interest: "604085.40",
+        principal: "1116870.60",
+        extras: "0.00",
+        extraPrincipal: "0.00",
+        balance: "42378803.27",
+        paid: false,
+      },
+      hasRecords: true,
+    },
+  },
+  schedule: [
+    {
+      number: 12,
+      dueDate: "2028-01-15",
+      payment: "1720956.00",
+      interest: "687876.64",
+      principal: "1033079.36",
+      extras: "0.00",
+      extraPrincipal: "0.00",
+      balance: "48495673.87",
+      paid: true,
+      paidOn: "2028-01-15",
+    },
+    {
+      number: 13,
+      dueDate: "2028-02-15",
+      payment: "1720956.00",
+      interest: "604085.40",
+      principal: "1116870.60",
+      extras: "0.00",
+      extraPrincipal: "0.00",
+      balance: "42378803.27",
+      paid: false,
+    },
+    {
+      number: 44,
+      dueDate: "2030-09-15",
+      payment: "598024.71",
+      interest: "8192.19",
+      principal: "589832.52",
+      extras: "0.00",
+      extraPrincipal: "0.00",
+      balance: "0.00",
+      paid: false,
+    },
+  ],
+  records: [
+    {
+      id: "rec-13",
+      kind: "PREPAYMENT",
+      date: "2028-01-20",
+      amount: "5000000.00",
+      mode: "REDUCE_TERM",
+      undoable: true,
+    },
+    {
+      id: "rec-12",
+      kind: "PAYMENT",
+      date: "2028-01-15",
+      amount: "1720956.00",
+      mode: "REDUCE_TERM",
+      installmentNumber: 12,
+      undoable: false,
+    },
+  ],
 }

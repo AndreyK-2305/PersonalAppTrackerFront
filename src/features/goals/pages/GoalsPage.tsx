@@ -14,6 +14,7 @@ import {
   type FinancedGoal,
   type SavingsGoal,
 } from "../api/goals"
+import { CreditStatusBadge } from "../components/CreditProgress"
 import { FinancedGoalFormDialog } from "../components/FinancedGoalFormDialog"
 import { SavingsGoalFormDialog } from "../components/SavingsGoalFormDialog"
 import { GoalProgress, GoalProjectionText, GoalStatusBadge } from "../components/SavingsGoalSummary"
@@ -157,26 +158,34 @@ function SavingsGoalCard({ goal }: { goal: SavingsGoal }) {
 }
 
 function FinancedGoalCard({ goal }: { goal: FinancedGoal }) {
-  const { summary } = goal
+  const { summary, progress } = goal
+  const total = progress.paidInstallments + progress.pendingInstallments
   return (
     <Card role="article" aria-label={goal.name}>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-start justify-between gap-2">
         <CardTitle className="min-w-0 text-base">
           <Link to={`/metas/financiada/${goal.id}`} className="truncate hover:underline">
             {goal.name}
           </Link>
         </CardTitle>
+        <CreditStatusBadge status={progress.status} />
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
-        <p>
-          <strong className="text-base tabular-nums">
-            {formatMoney(summary.installmentAmount, goal.currency)}
-          </strong>{" "}
-          al mes durante {summary.scheduledInstallments} cuotas
-        </p>
+        {progress.status === "PAID_OFF" ? (
+          <p>
+            Crédito pagado: {formatMoney(progress.paidSoFar, goal.currency)} en {total} cuotas.
+          </p>
+        ) : (
+          <p>
+            <strong className="text-base tabular-nums">
+              {formatMoney(summary.installmentAmount, goal.currency)}
+            </strong>{" "}
+            al mes · {progress.paidInstallments} de {total} cuotas pagadas
+          </p>
+        )}
         <p className="text-muted-foreground">
-          Financias {formatMoney(summary.financedAmount, goal.currency)} y pagas{" "}
-          {formatMoney(summary.totalInterest, goal.currency)} de intereses. Última cuota:{" "}
+          Saldo {formatMoney(progress.balance, goal.currency)}. Intereses del plan:{" "}
+          {formatMoney(summary.totalInterest, goal.currency)}. Última cuota:{" "}
           {formatDate(summary.lastDueDate)}.
         </p>
       </CardContent>

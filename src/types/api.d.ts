@@ -164,6 +164,70 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/goals/financed/{id}/rate-adjustments": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["adjustRate_1"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/goals/financed/{id}/prepayments": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["prepay"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/goals/financed/{id}/payments": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["pay"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  "/api/v1/goals/financed/{id}/payments/through": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post: operations["payThrough"]
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/v1/goals/financed/simulations": {
     parameters: {
       query?: never
@@ -564,6 +628,22 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  "/api/v1/goals/financed/{id}/records/{recordId}": {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    delete: operations["undo"]
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   "/api/v1/capture/own-keys/{id}": {
     parameters: {
       query?: never
@@ -663,9 +743,43 @@ export interface components {
       /** @example 1450000.00 */
       actualInstallment?: string
     }
+    CreditProgressResponse: {
+      /** @enum {string} */
+      status: "ON_TRACK" | "OVERDUE" | "PAID_OFF"
+      /** Format: int32 */
+      paidInstallments: number
+      /** Format: int32 */
+      pendingInstallments: number
+      balance: string
+      currentRatePercent: string
+      paidInterest: string
+      pendingInterest: string
+      originalTotalInterest: string
+      interestSavings: string
+      paidSoFar: string
+      nextInstallment?: components["schemas"]["InstallmentResponse"]
+      hasRecords: boolean
+    }
+    CreditRecordResponse: {
+      /** Format: uuid */
+      id: string
+      /** @enum {string} */
+      kind: "PAYMENT" | "PREPAYMENT" | "RATE_ADJUSTMENT"
+      /** Format: date */
+      date: string
+      amount?: string
+      /** @enum {string} */
+      mode?: "REDUCE_TERM" | "REDUCE_INSTALLMENT"
+      /** Format: int32 */
+      installmentNumber?: number
+      ratePercent?: string
+      actualInstallment?: string
+      undoable: boolean
+    }
     FinancedGoalDetailResponse: {
       goal: components["schemas"]["FinancedGoalResponse"]
       schedule: components["schemas"]["InstallmentResponse"][]
+      records: components["schemas"]["CreditRecordResponse"][]
     }
     FinancedGoalResponse: {
       /** Format: uuid */
@@ -681,6 +795,7 @@ export interface components {
       firstDueDate: string
       actualInstallment?: string
       summary: components["schemas"]["PlanSummaryResponse"]
+      progress: components["schemas"]["CreditProgressResponse"]
       /** Format: date-time */
       createdAt: string
       /** Format: date-time */
@@ -695,7 +810,11 @@ export interface components {
       interest: string
       principal: string
       extras: string
+      extraPrincipal: string
       balance: string
+      paid: boolean
+      /** Format: date */
+      paidOn?: string
     }
     PlanSummaryResponse: {
       financedAmount: string
@@ -853,6 +972,32 @@ export interface components {
       date: string
       /** @example 150000.00 */
       amount: string
+    }
+    RateAdjustmentRequest: {
+      /** @example 20 */
+      ratePercent: string
+      /** @example 1802283.00 */
+      actualInstallment?: string
+    }
+    PrepaymentRequest: {
+      /** Format: date */
+      date: string
+      /** @example 5000000.00 */
+      amount: string
+      /** @enum {string} */
+      mode?: "REDUCE_TERM" | "REDUCE_INSTALLMENT"
+    }
+    PaymentRequest: {
+      /** Format: date */
+      date: string
+      /** @example 1720956.00 */
+      amount: string
+      /** @enum {string} */
+      excessMode?: "REDUCE_TERM" | "REDUCE_INSTALLMENT"
+    }
+    PayThroughRequest: {
+      /** Format: int32 */
+      installmentNumber: number
     }
     TermsRequest: {
       /** @example 60000000.00 */
@@ -1465,6 +1610,110 @@ export interface operations {
     requestBody: {
       content: {
         "application/json": components["schemas"]["FinancedGoalRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["FinancedGoalDetailResponse"]
+        }
+      }
+    }
+  }
+  adjustRate_1: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RateAdjustmentRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["FinancedGoalDetailResponse"]
+        }
+      }
+    }
+  }
+  prepay: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PrepaymentRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["FinancedGoalDetailResponse"]
+        }
+      }
+    }
+  }
+  pay: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PaymentRequest"]
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["FinancedGoalDetailResponse"]
+        }
+      }
+    }
+  }
+  payThrough: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PayThroughRequest"]
       }
     }
     responses: {
@@ -2186,6 +2435,29 @@ export interface operations {
         }
         content: {
           "*/*": components["schemas"]["SavingsGoalResponse"]
+        }
+      }
+    }
+  }
+  undo: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+        recordId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          "*/*": components["schemas"]["FinancedGoalDetailResponse"]
         }
       }
     }

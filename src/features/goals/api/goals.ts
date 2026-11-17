@@ -17,6 +17,10 @@ export type FinancingTerms = Schemas["TermsRequest"]
 export type FinancingSimulation = Schemas["SimulationResponse"]
 export type PlanSummary = Schemas["PlanSummaryResponse"]
 export type Installment = Schemas["InstallmentResponse"]
+export type CreditProgress = Schemas["CreditProgressResponse"]
+export type CreditStatus = CreditProgress["status"]
+export type CreditRecord = Schemas["CreditRecordResponse"]
+export type PrepaymentMode = NonNullable<CreditRecord["mode"]>
 
 const BASE = "/api/v1/goals/savings"
 const FINANCED = "/api/v1/goals/financed"
@@ -132,4 +136,70 @@ export function updateFinancedGoal({
 
 export function deleteFinancedGoal(id: string): Promise<void> {
   return apiFetch(`${FINANCED}/${id}`, { method: "DELETE" })
+}
+
+// --- Pagos, abonos y ajustes de tasa de una meta financiada (ADR-0018) ---
+// Cada operación responde con la meta completa y su plan recalculado.
+
+/** Paga la siguiente cuota pendiente; lo que supere su valor es un abono que se aplica con `excessMode`. */
+export function payInstallment({
+  goalId,
+  ...request
+}: {
+  goalId: string
+  date: string
+  amount: string
+  excessMode?: PrepaymentMode
+}): Promise<FinancedGoalDetail> {
+  return apiFetch(`${FINANCED}/${goalId}/payments`, { method: "POST", json: request })
+}
+
+/** Marca como pagadas todas las cuotas pendientes hasta `installmentNumber`, por su valor programado. */
+export function payThroughInstallment({
+  goalId,
+  installmentNumber,
+}: {
+  goalId: string
+  installmentNumber: number
+}): Promise<FinancedGoalDetail> {
+  return apiFetch(`${FINANCED}/${goalId}/payments/through`, {
+    method: "POST",
+    json: { installmentNumber },
+  })
+}
+
+/** Abono extraordinario a capital. */
+export function prepayCredit({
+  goalId,
+  ...request
+}: {
+  goalId: string
+  date: string
+  amount: string
+  mode: PrepaymentMode
+}): Promise<FinancedGoalDetail> {
+  return apiFetch(`${FINANCED}/${goalId}/prepayments`, { method: "POST", json: request })
+}
+
+/** Ajuste de tasa: rige desde la siguiente cuota. Sin `actualInstallment` se conservan los seguros y otros. */
+export function adjustCreditRate({
+  goalId,
+  ...request
+}: {
+  goalId: string
+  ratePercent: string
+  actualInstallment?: string
+}): Promise<FinancedGoalDetail> {
+  return apiFetch(`${FINANCED}/${goalId}/rate-adjustments`, { method: "POST", json: request })
+}
+
+/** Deshace un registro; el backend solo admite el último. */
+export function undoCreditRecord({
+  goalId,
+  recordId,
+}: {
+  goalId: string
+  recordId: string
+}): Promise<FinancedGoalDetail> {
+  return apiFetch(`${FINANCED}/${goalId}/records/${recordId}`, { method: "DELETE" })
 }
